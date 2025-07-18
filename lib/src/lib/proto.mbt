@@ -14,13 +14,21 @@
 
 ///|
 pub(open) trait Read {
-  read(&Reader) -> Self raise ReaderError
+  read(&Reader) -> Self raise
 }
 
 ///|
 pub(open) trait Write {
-  write(Self, &Writer) -> Unit
+  write(Self, &Writer) -> Unit raise
 }
 
 ///|
 pub(open) trait Proto: Read + Write {}
+
+// pub async fn[T : AsyncReader] L::read(reader : T) -> L raise {
+//   ...
+// }
+
+// pub async fn [T : AsyncWriter] L::write(writer : T) -> Unit raise {
+//   ...
+// }

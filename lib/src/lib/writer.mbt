@@ -13,11 +13,8 @@
 // limitations under the License.
 
 ///| Trait representing the Writer
-/// 
-/// `write_bytes` should be implemented at least.
 pub(open) trait Writer {
-  write_byte(Self, Byte) -> Unit = _
-  write_bytes(Self, Bytes) -> Unit
+  write(Self, @bytes.View) -> Unit raise
 }
 
 ///|

@@ -20,11 +20,8 @@ pub(all) suberror ReaderError {
 } derive(Eq, Show)
 
 ///| Trait representing the reader
-/// 
-/// `next_bytes` should be implemented at least, and calling `next_bytes(0)` should return an empty bytes if there are still bytes to read
 pub(open) trait Reader {
-  next(Self) -> Byte? = _
-  next_bytes(Self, UInt) -> Bytes?
+  read(Self, FixedArray[Byte], offset~ : Int, max_length~ : Int) -> Int? raise
 }
 
 ///|
