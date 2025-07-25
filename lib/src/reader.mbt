@@ -232,7 +232,7 @@ pub fn[M : Read + Default, R : Reader] read_message(reader : R) -> M raise {
 /// fields behaves like an iterator, yielding their tag everytime
 pub fn[M : Sized, R : Reader] read_packed(
   reader : R,
-  read_fn : (&Reader) -> M raise ReaderError,
+  read_fn : (&Reader) -> M raise,
   size : UInt?,
 ) -> Array[M] raise {
   let len = reader |> read_varint32()
