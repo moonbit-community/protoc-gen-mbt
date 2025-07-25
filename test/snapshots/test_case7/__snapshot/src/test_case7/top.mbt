@@ -32,11 +32,11 @@ pub impl Default for TreeNode with default() -> TreeNode {
     sibling : None,
   }
 }
-pub async fn[R: @protobuf.AsyncReader] TreeNode::read(reader : R) -> TreeNode raise {
+pub  fn[R: @protobuf.Reader] TreeNode::read(reader : R) -> TreeNode raise {
   let reader = @protobuf.LimitedReader::new(reader)
   TreeNode::read_with_limit(reader)
 }
-pub async fn[R: @protobuf.AsyncReader] TreeNode::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> TreeNode raise {
+pub  fn[R: @protobuf.Reader] TreeNode::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> TreeNode raise {
   let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
     if l < limit { raise @protobuf.EndOfStream }
     Some(l - limit)
@@ -45,11 +45,11 @@ pub async fn[R: @protobuf.AsyncReader] TreeNode::read_with_limit(reader : @proto
   let msg = TreeNode::default()
   try {
     for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.name = reader |> @protobuf.async_read_string()
-      (2, _) => msg.value = reader |> @protobuf.async_read_int32() |> Some
+      match (reader |> @protobuf.read_tag()) {
+      (1, _) => msg.name = reader |> @protobuf.read_string()
+      (2, _) => msg.value = reader |> @protobuf.read_int32() |> Some
       (3, _) => msg.parent =   {
-    let len = reader |> @protobuf.async_read_int32()
+    let len = reader |> @protobuf.read_int32()
     if len == 0 {
       TreeNode::default()
     } else {
@@ -57,7 +57,7 @@ pub async fn[R: @protobuf.AsyncReader] TreeNode::read_with_limit(reader : @proto
     }
   } |> Some
       (4, _) => msg.children.push(  {
-    let len = reader |> @protobuf.async_read_int32()
+    let len = reader |> @protobuf.read_int32()
     if len == 0 {
       TreeNode::default()
     } else {
@@ -65,14 +65,14 @@ pub async fn[R: @protobuf.AsyncReader] TreeNode::read_with_limit(reader : @proto
     }
   })
       (5, _) => msg.sibling =   {
-    let len = reader |> @protobuf.async_read_int32()
+    let len = reader |> @protobuf.read_int32()
     if len == 0 {
       TreeNode::default()
     } else {
       TreeNode::read_with_limit(reader, limit=len)
     }
   } |> Some
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+       (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
   } catch {
@@ -82,34 +82,34 @@ pub async fn[R: @protobuf.AsyncReader] TreeNode::read_with_limit(reader : @proto
   reader.limit = new_limit
   msg
 }
-pub async fn[W: @protobuf.AsyncWriter] TreeNode::write(self:Self, writer : W) -> Unit raise {
-  writer |> @protobuf.async_write_varint(10UL);
-  writer |> @protobuf.async_write_string(self.name)
+pub  fn[W: @protobuf.Writer] TreeNode::write(self:Self, writer : W) -> Unit raise {
+  writer |> @protobuf.write_varint(10UL);
+  writer |> @protobuf.write_string(self.name)
   match self.value {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(16UL);
-      writer |> @protobuf.async_write_int32(v)
+      writer |> @protobuf.write_varint(16UL);
+      writer |> @protobuf.write_int32(v)
 
     }
     None => ()
   }
   match self.parent {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(26UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_varint(26UL);
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
 
     }
     None => ()
   }
   for item in self.children {
-    writer |> @protobuf.async_write_varint(34UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_varint(34UL)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
 
   }
   match self.sibling {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(42UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_varint(42UL);
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
 
     }
     None => ()
@@ -155,6 +155,89 @@ pub impl @json.FromJson for TreeNode with from_json(json: Json, path: @json.Json
   }
   message
 }
+pub async fn[R: @protobuf.AsyncReader] TreeNode::async_read(reader : R) -> TreeNode raise {
+  let reader = @protobuf.LimitedReader::new(reader)
+  TreeNode::async_read_with_limit(reader)
+}
+pub async fn[R: @protobuf.AsyncReader] TreeNode::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> TreeNode raise {
+  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
+    if l < limit { raise @protobuf.EndOfStream }
+    Some(l - limit)
+  } else { None }
+  reader.limit = limit
+  let msg = TreeNode::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.name = reader |> @protobuf.async_read_string()
+      (2, _) => msg.value = reader |> @protobuf.async_read_int32() |> Some
+      (3, _) => msg.parent =   {
+    let len = reader |> @protobuf.async_read_int32()
+    if len == 0 {
+      TreeNode::default()
+    } else {
+      TreeNode::async_read_with_limit(reader, limit=len)
+    }
+  } |> Some
+      (4, _) => msg.children.push(  {
+    let len = reader |> @protobuf.async_read_int32()
+    if len == 0 {
+      TreeNode::default()
+    } else {
+      TreeNode::async_read_with_limit(reader, limit=len)
+    }
+  })
+      (5, _) => msg.sibling =   {
+    let len = reader |> @protobuf.async_read_int32()
+    if len == 0 {
+      TreeNode::default()
+    } else {
+      TreeNode::async_read_with_limit(reader, limit=len)
+    }
+  } |> Some
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  reader.limit = new_limit
+  msg
+}
+pub async fn[W: @protobuf.AsyncWriter] TreeNode::async_write(self:Self, writer : W) -> Unit raise {
+  writer |> @protobuf.async_write_varint(10UL);
+  writer |> @protobuf.async_write_string(self.name)
+  match self.value {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(16UL);
+      writer |> @protobuf.async_write_int32(v)
+
+    }
+    None => ()
+  }
+  match self.parent {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(26UL);
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+
+    }
+    None => ()
+  }
+  for item in self.children {
+    writer |> @protobuf.async_write_varint(34UL)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+
+  }
+  match self.sibling {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(42UL);
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+
+    }
+    None => ()
+  }
+}
 pub(all) struct ListNode {
   mut data : String
   mut next : ListNode?
@@ -180,11 +263,11 @@ pub impl Default for ListNode with default() -> ListNode {
     prev : None,
   }
 }
-pub async fn[R: @protobuf.AsyncReader] ListNode::read(reader : R) -> ListNode raise {
+pub  fn[R: @protobuf.Reader] ListNode::read(reader : R) -> ListNode raise {
   let reader = @protobuf.LimitedReader::new(reader)
   ListNode::read_with_limit(reader)
 }
-pub async fn[R: @protobuf.AsyncReader] ListNode::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> ListNode raise {
+pub  fn[R: @protobuf.Reader] ListNode::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> ListNode raise {
   let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
     if l < limit { raise @protobuf.EndOfStream }
     Some(l - limit)
@@ -193,10 +276,10 @@ pub async fn[R: @protobuf.AsyncReader] ListNode::read_with_limit(reader : @proto
   let msg = ListNode::default()
   try {
     for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.data = reader |> @protobuf.async_read_string()
+      match (reader |> @protobuf.read_tag()) {
+      (1, _) => msg.data = reader |> @protobuf.read_string()
       (2, _) => msg.next =   {
-    let len = reader |> @protobuf.async_read_int32()
+    let len = reader |> @protobuf.read_int32()
     if len == 0 {
       ListNode::default()
     } else {
@@ -204,14 +287,14 @@ pub async fn[R: @protobuf.AsyncReader] ListNode::read_with_limit(reader : @proto
     }
   } |> Some
       (3, _) => msg.prev =   {
-    let len = reader |> @protobuf.async_read_int32()
+    let len = reader |> @protobuf.read_int32()
     if len == 0 {
       ListNode::default()
     } else {
       ListNode::read_with_limit(reader, limit=len)
     }
   } |> Some
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+       (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
   } catch {
@@ -221,21 +304,21 @@ pub async fn[R: @protobuf.AsyncReader] ListNode::read_with_limit(reader : @proto
   reader.limit = new_limit
   msg
 }
-pub async fn[W: @protobuf.AsyncWriter] ListNode::write(self:Self, writer : W) -> Unit raise {
-  writer |> @protobuf.async_write_varint(10UL);
-  writer |> @protobuf.async_write_string(self.data)
+pub  fn[W: @protobuf.Writer] ListNode::write(self:Self, writer : W) -> Unit raise {
+  writer |> @protobuf.write_varint(10UL);
+  writer |> @protobuf.write_string(self.data)
   match self.next {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(18UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_varint(18UL);
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
 
     }
     None => ()
   }
   match self.prev {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(26UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_varint(26UL);
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
 
     }
     None => ()
@@ -271,6 +354,67 @@ pub impl @json.FromJson for ListNode with from_json(json: Json, path: @json.Json
   }
   message
 }
+pub async fn[R: @protobuf.AsyncReader] ListNode::async_read(reader : R) -> ListNode raise {
+  let reader = @protobuf.LimitedReader::new(reader)
+  ListNode::async_read_with_limit(reader)
+}
+pub async fn[R: @protobuf.AsyncReader] ListNode::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> ListNode raise {
+  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
+    if l < limit { raise @protobuf.EndOfStream }
+    Some(l - limit)
+  } else { None }
+  reader.limit = limit
+  let msg = ListNode::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.data = reader |> @protobuf.async_read_string()
+      (2, _) => msg.next =   {
+    let len = reader |> @protobuf.async_read_int32()
+    if len == 0 {
+      ListNode::default()
+    } else {
+      ListNode::async_read_with_limit(reader, limit=len)
+    }
+  } |> Some
+      (3, _) => msg.prev =   {
+    let len = reader |> @protobuf.async_read_int32()
+    if len == 0 {
+      ListNode::default()
+    } else {
+      ListNode::async_read_with_limit(reader, limit=len)
+    }
+  } |> Some
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  reader.limit = new_limit
+  msg
+}
+pub async fn[W: @protobuf.AsyncWriter] ListNode::async_write(self:Self, writer : W) -> Unit raise {
+  writer |> @protobuf.async_write_varint(10UL);
+  writer |> @protobuf.async_write_string(self.data)
+  match self.next {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(18UL);
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+
+    }
+    None => ()
+  }
+  match self.prev {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(26UL);
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+
+    }
+    None => ()
+  }
+}
 pub(all) struct GraphNode {
   mut id : String
   mut label : String?
@@ -299,11 +443,11 @@ pub impl Default for GraphNode with default() -> GraphNode {
     visited : Some(false),
   }
 }
-pub async fn[R: @protobuf.AsyncReader] GraphNode::read(reader : R) -> GraphNode raise {
+pub  fn[R: @protobuf.Reader] GraphNode::read(reader : R) -> GraphNode raise {
   let reader = @protobuf.LimitedReader::new(reader)
   GraphNode::read_with_limit(reader)
 }
-pub async fn[R: @protobuf.AsyncReader] GraphNode::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> GraphNode raise {
+pub  fn[R: @protobuf.Reader] GraphNode::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> GraphNode raise {
   let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
     if l < limit { raise @protobuf.EndOfStream }
     Some(l - limit)
@@ -312,19 +456,19 @@ pub async fn[R: @protobuf.AsyncReader] GraphNode::read_with_limit(reader : @prot
   let msg = GraphNode::default()
   try {
     for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.id = reader |> @protobuf.async_read_string()
-      (2, _) => msg.label = reader |> @protobuf.async_read_string() |> Some
+      match (reader |> @protobuf.read_tag()) {
+      (1, _) => msg.id = reader |> @protobuf.read_string()
+      (2, _) => msg.label = reader |> @protobuf.read_string() |> Some
       (3, _) => msg.neighbors.push(  {
-    let len = reader |> @protobuf.async_read_int32()
+    let len = reader |> @protobuf.read_int32()
     if len == 0 {
       GraphNode::default()
     } else {
       GraphNode::read_with_limit(reader, limit=len)
     }
   })
-      (4, _) => msg.visited = reader |> @protobuf.async_read_bool() |> Some
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      (4, _) => msg.visited = reader |> @protobuf.read_bool() |> Some
+       (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
   } catch {
@@ -334,26 +478,26 @@ pub async fn[R: @protobuf.AsyncReader] GraphNode::read_with_limit(reader : @prot
   reader.limit = new_limit
   msg
 }
-pub async fn[W: @protobuf.AsyncWriter] GraphNode::write(self:Self, writer : W) -> Unit raise {
-  writer |> @protobuf.async_write_varint(10UL);
-  writer |> @protobuf.async_write_string(self.id)
+pub  fn[W: @protobuf.Writer] GraphNode::write(self:Self, writer : W) -> Unit raise {
+  writer |> @protobuf.write_varint(10UL);
+  writer |> @protobuf.write_string(self.id)
   match self.label {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(18UL);
-      writer |> @protobuf.async_write_string(v)
+      writer |> @protobuf.write_varint(18UL);
+      writer |> @protobuf.write_string(v)
 
     }
     None => ()
   }
   for item in self.neighbors {
-    writer |> @protobuf.async_write_varint(26UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_varint(26UL)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
 
   }
   match self.visited {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(32UL);
-      writer |> @protobuf.async_write_bool(v)
+      writer |> @protobuf.write_varint(32UL);
+      writer |> @protobuf.write_bool(v)
 
     }
     None => ()
@@ -394,6 +538,66 @@ pub impl @json.FromJson for GraphNode with from_json(json: Json, path: @json.Jso
   }
   message
 }
+pub async fn[R: @protobuf.AsyncReader] GraphNode::async_read(reader : R) -> GraphNode raise {
+  let reader = @protobuf.LimitedReader::new(reader)
+  GraphNode::async_read_with_limit(reader)
+}
+pub async fn[R: @protobuf.AsyncReader] GraphNode::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> GraphNode raise {
+  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
+    if l < limit { raise @protobuf.EndOfStream }
+    Some(l - limit)
+  } else { None }
+  reader.limit = limit
+  let msg = GraphNode::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.id = reader |> @protobuf.async_read_string()
+      (2, _) => msg.label = reader |> @protobuf.async_read_string() |> Some
+      (3, _) => msg.neighbors.push(  {
+    let len = reader |> @protobuf.async_read_int32()
+    if len == 0 {
+      GraphNode::default()
+    } else {
+      GraphNode::async_read_with_limit(reader, limit=len)
+    }
+  })
+      (4, _) => msg.visited = reader |> @protobuf.async_read_bool() |> Some
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  reader.limit = new_limit
+  msg
+}
+pub async fn[W: @protobuf.AsyncWriter] GraphNode::async_write(self:Self, writer : W) -> Unit raise {
+  writer |> @protobuf.async_write_varint(10UL);
+  writer |> @protobuf.async_write_string(self.id)
+  match self.label {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(18UL);
+      writer |> @protobuf.async_write_string(v)
+
+    }
+    None => ()
+  }
+  for item in self.neighbors {
+    writer |> @protobuf.async_write_varint(26UL)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+
+  }
+  match self.visited {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(32UL);
+      writer |> @protobuf.async_write_bool(v)
+
+    }
+    None => ()
+  }
+}
 pub(all) struct NestedSelfRef_Inner {
   mut inner_name : String?
   mut outer_ref : NestedSelfRef?
@@ -422,11 +626,11 @@ pub impl Default for NestedSelfRef_Inner with default() -> NestedSelfRef_Inner {
     inner_ref : None,
   }
 }
-pub async fn[R: @protobuf.AsyncReader] NestedSelfRef_Inner::read(reader : R) -> NestedSelfRef_Inner raise {
+pub  fn[R: @protobuf.Reader] NestedSelfRef_Inner::read(reader : R) -> NestedSelfRef_Inner raise {
   let reader = @protobuf.LimitedReader::new(reader)
   NestedSelfRef_Inner::read_with_limit(reader)
 }
-pub async fn[R: @protobuf.AsyncReader] NestedSelfRef_Inner::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> NestedSelfRef_Inner raise {
+pub  fn[R: @protobuf.Reader] NestedSelfRef_Inner::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> NestedSelfRef_Inner raise {
   let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
     if l < limit { raise @protobuf.EndOfStream }
     Some(l - limit)
@@ -435,10 +639,10 @@ pub async fn[R: @protobuf.AsyncReader] NestedSelfRef_Inner::read_with_limit(read
   let msg = NestedSelfRef_Inner::default()
   try {
     for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.inner_name = reader |> @protobuf.async_read_string() |> Some
+      match (reader |> @protobuf.read_tag()) {
+      (1, _) => msg.inner_name = reader |> @protobuf.read_string() |> Some
       (2, _) => msg.outer_ref =   {
-    let len = reader |> @protobuf.async_read_int32()
+    let len = reader |> @protobuf.read_int32()
     if len == 0 {
       NestedSelfRef::default()
     } else {
@@ -446,14 +650,14 @@ pub async fn[R: @protobuf.AsyncReader] NestedSelfRef_Inner::read_with_limit(read
     }
   } |> Some
       (3, _) => msg.inner_ref =   {
-    let len = reader |> @protobuf.async_read_int32()
+    let len = reader |> @protobuf.read_int32()
     if len == 0 {
       NestedSelfRef_Inner::default()
     } else {
       NestedSelfRef_Inner::read_with_limit(reader, limit=len)
     }
   } |> Some
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+       (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
   } catch {
@@ -463,27 +667,27 @@ pub async fn[R: @protobuf.AsyncReader] NestedSelfRef_Inner::read_with_limit(read
   reader.limit = new_limit
   msg
 }
-pub async fn[W: @protobuf.AsyncWriter] NestedSelfRef_Inner::write(self:Self, writer : W) -> Unit raise {
+pub  fn[W: @protobuf.Writer] NestedSelfRef_Inner::write(self:Self, writer : W) -> Unit raise {
   match self.inner_name {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(10UL);
-      writer |> @protobuf.async_write_string(v)
+      writer |> @protobuf.write_varint(10UL);
+      writer |> @protobuf.write_string(v)
 
     }
     None => ()
   }
   match self.outer_ref {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(18UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_varint(18UL);
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
 
     }
     None => ()
   }
   match self.inner_ref {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(26UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_varint(26UL);
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
 
     }
     None => ()
@@ -520,6 +724,73 @@ pub impl @json.FromJson for NestedSelfRef_Inner with from_json(json: Json, path:
   }
   message
 }
+pub async fn[R: @protobuf.AsyncReader] NestedSelfRef_Inner::async_read(reader : R) -> NestedSelfRef_Inner raise {
+  let reader = @protobuf.LimitedReader::new(reader)
+  NestedSelfRef_Inner::async_read_with_limit(reader)
+}
+pub async fn[R: @protobuf.AsyncReader] NestedSelfRef_Inner::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> NestedSelfRef_Inner raise {
+  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
+    if l < limit { raise @protobuf.EndOfStream }
+    Some(l - limit)
+  } else { None }
+  reader.limit = limit
+  let msg = NestedSelfRef_Inner::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.inner_name = reader |> @protobuf.async_read_string() |> Some
+      (2, _) => msg.outer_ref =   {
+    let len = reader |> @protobuf.async_read_int32()
+    if len == 0 {
+      NestedSelfRef::default()
+    } else {
+      NestedSelfRef::async_read_with_limit(reader, limit=len)
+    }
+  } |> Some
+      (3, _) => msg.inner_ref =   {
+    let len = reader |> @protobuf.async_read_int32()
+    if len == 0 {
+      NestedSelfRef_Inner::default()
+    } else {
+      NestedSelfRef_Inner::async_read_with_limit(reader, limit=len)
+    }
+  } |> Some
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  reader.limit = new_limit
+  msg
+}
+pub async fn[W: @protobuf.AsyncWriter] NestedSelfRef_Inner::async_write(self:Self, writer : W) -> Unit raise {
+  match self.inner_name {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(10UL);
+      writer |> @protobuf.async_write_string(v)
+
+    }
+    None => ()
+  }
+  match self.outer_ref {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(18UL);
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+
+    }
+    None => ()
+  }
+  match self.inner_ref {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(26UL);
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+
+    }
+    None => ()
+  }
+}
 pub(all) struct NestedSelfRef {
   mut name : String
   mut inner : NestedSelfRef_Inner?
@@ -545,11 +816,11 @@ pub impl Default for NestedSelfRef with default() -> NestedSelfRef {
     self_ref : None,
   }
 }
-pub async fn[R: @protobuf.AsyncReader] NestedSelfRef::read(reader : R) -> NestedSelfRef raise {
+pub  fn[R: @protobuf.Reader] NestedSelfRef::read(reader : R) -> NestedSelfRef raise {
   let reader = @protobuf.LimitedReader::new(reader)
   NestedSelfRef::read_with_limit(reader)
 }
-pub async fn[R: @protobuf.AsyncReader] NestedSelfRef::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> NestedSelfRef raise {
+pub  fn[R: @protobuf.Reader] NestedSelfRef::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> NestedSelfRef raise {
   let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
     if l < limit { raise @protobuf.EndOfStream }
     Some(l - limit)
@@ -558,10 +829,10 @@ pub async fn[R: @protobuf.AsyncReader] NestedSelfRef::read_with_limit(reader : @
   let msg = NestedSelfRef::default()
   try {
     for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.name = reader |> @protobuf.async_read_string()
+      match (reader |> @protobuf.read_tag()) {
+      (1, _) => msg.name = reader |> @protobuf.read_string()
       (2, _) => msg.inner =   {
-    let len = reader |> @protobuf.async_read_int32()
+    let len = reader |> @protobuf.read_int32()
     if len == 0 {
       NestedSelfRef_Inner::default()
     } else {
@@ -569,14 +840,14 @@ pub async fn[R: @protobuf.AsyncReader] NestedSelfRef::read_with_limit(reader : @
     }
   } |> Some
       (3, _) => msg.self_ref =   {
-    let len = reader |> @protobuf.async_read_int32()
+    let len = reader |> @protobuf.read_int32()
     if len == 0 {
       NestedSelfRef::default()
     } else {
       NestedSelfRef::read_with_limit(reader, limit=len)
     }
   } |> Some
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+       (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
   } catch {
@@ -586,21 +857,21 @@ pub async fn[R: @protobuf.AsyncReader] NestedSelfRef::read_with_limit(reader : @
   reader.limit = new_limit
   msg
 }
-pub async fn[W: @protobuf.AsyncWriter] NestedSelfRef::write(self:Self, writer : W) -> Unit raise {
-  writer |> @protobuf.async_write_varint(10UL);
-  writer |> @protobuf.async_write_string(self.name)
+pub  fn[W: @protobuf.Writer] NestedSelfRef::write(self:Self, writer : W) -> Unit raise {
+  writer |> @protobuf.write_varint(10UL);
+  writer |> @protobuf.write_string(self.name)
   match self.inner {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(18UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_varint(18UL);
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
 
     }
     None => ()
   }
   match self.self_ref {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(26UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_varint(26UL);
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
 
     }
     None => ()
@@ -636,6 +907,67 @@ pub impl @json.FromJson for NestedSelfRef with from_json(json: Json, path: @json
   }
   message
 }
+pub async fn[R: @protobuf.AsyncReader] NestedSelfRef::async_read(reader : R) -> NestedSelfRef raise {
+  let reader = @protobuf.LimitedReader::new(reader)
+  NestedSelfRef::async_read_with_limit(reader)
+}
+pub async fn[R: @protobuf.AsyncReader] NestedSelfRef::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> NestedSelfRef raise {
+  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
+    if l < limit { raise @protobuf.EndOfStream }
+    Some(l - limit)
+  } else { None }
+  reader.limit = limit
+  let msg = NestedSelfRef::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.name = reader |> @protobuf.async_read_string()
+      (2, _) => msg.inner =   {
+    let len = reader |> @protobuf.async_read_int32()
+    if len == 0 {
+      NestedSelfRef_Inner::default()
+    } else {
+      NestedSelfRef_Inner::async_read_with_limit(reader, limit=len)
+    }
+  } |> Some
+      (3, _) => msg.self_ref =   {
+    let len = reader |> @protobuf.async_read_int32()
+    if len == 0 {
+      NestedSelfRef::default()
+    } else {
+      NestedSelfRef::async_read_with_limit(reader, limit=len)
+    }
+  } |> Some
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  reader.limit = new_limit
+  msg
+}
+pub async fn[W: @protobuf.AsyncWriter] NestedSelfRef::async_write(self:Self, writer : W) -> Unit raise {
+  writer |> @protobuf.async_write_varint(10UL);
+  writer |> @protobuf.async_write_string(self.name)
+  match self.inner {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(18UL);
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+
+    }
+    None => ()
+  }
+  match self.self_ref {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(26UL);
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+
+    }
+    None => ()
+  }
+}
 pub(all) struct Organization {
   mut name : String
   mut description : String?
@@ -667,11 +999,11 @@ pub impl Default for Organization with default() -> Organization {
     employees : [],
   }
 }
-pub async fn[R: @protobuf.AsyncReader] Organization::read(reader : R) -> Organization raise {
+pub  fn[R: @protobuf.Reader] Organization::read(reader : R) -> Organization raise {
   let reader = @protobuf.LimitedReader::new(reader)
   Organization::read_with_limit(reader)
 }
-pub async fn[R: @protobuf.AsyncReader] Organization::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> Organization raise {
+pub  fn[R: @protobuf.Reader] Organization::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> Organization raise {
   let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
     if l < limit { raise @protobuf.EndOfStream }
     Some(l - limit)
@@ -680,11 +1012,11 @@ pub async fn[R: @protobuf.AsyncReader] Organization::read_with_limit(reader : @p
   let msg = Organization::default()
   try {
     for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.name = reader |> @protobuf.async_read_string()
-      (2, _) => msg.description = reader |> @protobuf.async_read_string() |> Some
+      match (reader |> @protobuf.read_tag()) {
+      (1, _) => msg.name = reader |> @protobuf.read_string()
+      (2, _) => msg.description = reader |> @protobuf.read_string() |> Some
       (3, _) => msg.parent_org =   {
-    let len = reader |> @protobuf.async_read_int32()
+    let len = reader |> @protobuf.read_int32()
     if len == 0 {
       Organization::default()
     } else {
@@ -692,7 +1024,7 @@ pub async fn[R: @protobuf.AsyncReader] Organization::read_with_limit(reader : @p
     }
   } |> Some
       (4, _) => msg.sub_orgs.push(  {
-    let len = reader |> @protobuf.async_read_int32()
+    let len = reader |> @protobuf.read_int32()
     if len == 0 {
       Organization::default()
     } else {
@@ -700,14 +1032,14 @@ pub async fn[R: @protobuf.AsyncReader] Organization::read_with_limit(reader : @p
     }
   })
       (5, _) => msg.employees.push(  {
-    let len = reader |> @protobuf.async_read_int32()
+    let len = reader |> @protobuf.read_int32()
     if len == 0 {
       Employee::default()
     } else {
       Employee::read_with_limit(reader, limit=len)
     }
   })
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+       (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
   } catch {
@@ -717,33 +1049,33 @@ pub async fn[R: @protobuf.AsyncReader] Organization::read_with_limit(reader : @p
   reader.limit = new_limit
   msg
 }
-pub async fn[W: @protobuf.AsyncWriter] Organization::write(self:Self, writer : W) -> Unit raise {
-  writer |> @protobuf.async_write_varint(10UL);
-  writer |> @protobuf.async_write_string(self.name)
+pub  fn[W: @protobuf.Writer] Organization::write(self:Self, writer : W) -> Unit raise {
+  writer |> @protobuf.write_varint(10UL);
+  writer |> @protobuf.write_string(self.name)
   match self.description {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(18UL);
-      writer |> @protobuf.async_write_string(v)
+      writer |> @protobuf.write_varint(18UL);
+      writer |> @protobuf.write_string(v)
 
     }
     None => ()
   }
   match self.parent_org {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(26UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_varint(26UL);
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
 
     }
     None => ()
   }
   for item in self.sub_orgs {
-    writer |> @protobuf.async_write_varint(34UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_varint(34UL)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
 
   }
   for item in self.employees {
-    writer |> @protobuf.async_write_varint(42UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_varint(42UL)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
 
   }
 }
@@ -787,6 +1119,86 @@ pub impl @json.FromJson for Organization with from_json(json: Json, path: @json.
   }
   message
 }
+pub async fn[R: @protobuf.AsyncReader] Organization::async_read(reader : R) -> Organization raise {
+  let reader = @protobuf.LimitedReader::new(reader)
+  Organization::async_read_with_limit(reader)
+}
+pub async fn[R: @protobuf.AsyncReader] Organization::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> Organization raise {
+  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
+    if l < limit { raise @protobuf.EndOfStream }
+    Some(l - limit)
+  } else { None }
+  reader.limit = limit
+  let msg = Organization::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.name = reader |> @protobuf.async_read_string()
+      (2, _) => msg.description = reader |> @protobuf.async_read_string() |> Some
+      (3, _) => msg.parent_org =   {
+    let len = reader |> @protobuf.async_read_int32()
+    if len == 0 {
+      Organization::default()
+    } else {
+      Organization::async_read_with_limit(reader, limit=len)
+    }
+  } |> Some
+      (4, _) => msg.sub_orgs.push(  {
+    let len = reader |> @protobuf.async_read_int32()
+    if len == 0 {
+      Organization::default()
+    } else {
+      Organization::async_read_with_limit(reader, limit=len)
+    }
+  })
+      (5, _) => msg.employees.push(  {
+    let len = reader |> @protobuf.async_read_int32()
+    if len == 0 {
+      Employee::default()
+    } else {
+      Employee::async_read_with_limit(reader, limit=len)
+    }
+  })
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  reader.limit = new_limit
+  msg
+}
+pub async fn[W: @protobuf.AsyncWriter] Organization::async_write(self:Self, writer : W) -> Unit raise {
+  writer |> @protobuf.async_write_varint(10UL);
+  writer |> @protobuf.async_write_string(self.name)
+  match self.description {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(18UL);
+      writer |> @protobuf.async_write_string(v)
+
+    }
+    None => ()
+  }
+  match self.parent_org {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(26UL);
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+
+    }
+    None => ()
+  }
+  for item in self.sub_orgs {
+    writer |> @protobuf.async_write_varint(34UL)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+
+  }
+  for item in self.employees {
+    writer |> @protobuf.async_write_varint(42UL)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+
+  }
+}
 pub(all) struct Employee {
   mut name : String
   mut id : String
@@ -818,11 +1230,11 @@ pub impl Default for Employee with default() -> Employee {
     subordinates : [],
   }
 }
-pub async fn[R: @protobuf.AsyncReader] Employee::read(reader : R) -> Employee raise {
+pub  fn[R: @protobuf.Reader] Employee::read(reader : R) -> Employee raise {
   let reader = @protobuf.LimitedReader::new(reader)
   Employee::read_with_limit(reader)
 }
-pub async fn[R: @protobuf.AsyncReader] Employee::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> Employee raise {
+pub  fn[R: @protobuf.Reader] Employee::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> Employee raise {
   let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
     if l < limit { raise @protobuf.EndOfStream }
     Some(l - limit)
@@ -831,11 +1243,11 @@ pub async fn[R: @protobuf.AsyncReader] Employee::read_with_limit(reader : @proto
   let msg = Employee::default()
   try {
     for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.name = reader |> @protobuf.async_read_string()
-      (2, _) => msg.id = reader |> @protobuf.async_read_string()
+      match (reader |> @protobuf.read_tag()) {
+      (1, _) => msg.name = reader |> @protobuf.read_string()
+      (2, _) => msg.id = reader |> @protobuf.read_string()
       (3, _) => msg.organization =   {
-    let len = reader |> @protobuf.async_read_int32()
+    let len = reader |> @protobuf.read_int32()
     if len == 0 {
       Organization::default()
     } else {
@@ -843,7 +1255,7 @@ pub async fn[R: @protobuf.AsyncReader] Employee::read_with_limit(reader : @proto
     }
   } |> Some
       (4, _) => msg.manager =   {
-    let len = reader |> @protobuf.async_read_int32()
+    let len = reader |> @protobuf.read_int32()
     if len == 0 {
       Employee::default()
     } else {
@@ -851,14 +1263,14 @@ pub async fn[R: @protobuf.AsyncReader] Employee::read_with_limit(reader : @proto
     }
   } |> Some
       (5, _) => msg.subordinates.push(  {
-    let len = reader |> @protobuf.async_read_int32()
+    let len = reader |> @protobuf.read_int32()
     if len == 0 {
       Employee::default()
     } else {
       Employee::read_with_limit(reader, limit=len)
     }
   })
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+       (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
   } catch {
@@ -868,30 +1280,30 @@ pub async fn[R: @protobuf.AsyncReader] Employee::read_with_limit(reader : @proto
   reader.limit = new_limit
   msg
 }
-pub async fn[W: @protobuf.AsyncWriter] Employee::write(self:Self, writer : W) -> Unit raise {
-  writer |> @protobuf.async_write_varint(10UL);
-  writer |> @protobuf.async_write_string(self.name)
-  writer |> @protobuf.async_write_varint(18UL);
-  writer |> @protobuf.async_write_string(self.id)
+pub  fn[W: @protobuf.Writer] Employee::write(self:Self, writer : W) -> Unit raise {
+  writer |> @protobuf.write_varint(10UL);
+  writer |> @protobuf.write_string(self.name)
+  writer |> @protobuf.write_varint(18UL);
+  writer |> @protobuf.write_string(self.id)
   match self.organization {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(26UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_varint(26UL);
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
 
     }
     None => ()
   }
   match self.manager {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(34UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_varint(34UL);
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
 
     }
     None => ()
   }
   for item in self.subordinates {
-    writer |> @protobuf.async_write_varint(42UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_varint(42UL)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
 
   }
 }
@@ -933,4 +1345,81 @@ pub impl @json.FromJson for Employee with from_json(json: Json, path: @json.Json
     }
   }
   message
+}
+pub async fn[R: @protobuf.AsyncReader] Employee::async_read(reader : R) -> Employee raise {
+  let reader = @protobuf.LimitedReader::new(reader)
+  Employee::async_read_with_limit(reader)
+}
+pub async fn[R: @protobuf.AsyncReader] Employee::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> Employee raise {
+  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
+    if l < limit { raise @protobuf.EndOfStream }
+    Some(l - limit)
+  } else { None }
+  reader.limit = limit
+  let msg = Employee::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.name = reader |> @protobuf.async_read_string()
+      (2, _) => msg.id = reader |> @protobuf.async_read_string()
+      (3, _) => msg.organization =   {
+    let len = reader |> @protobuf.async_read_int32()
+    if len == 0 {
+      Organization::default()
+    } else {
+      Organization::async_read_with_limit(reader, limit=len)
+    }
+  } |> Some
+      (4, _) => msg.manager =   {
+    let len = reader |> @protobuf.async_read_int32()
+    if len == 0 {
+      Employee::default()
+    } else {
+      Employee::async_read_with_limit(reader, limit=len)
+    }
+  } |> Some
+      (5, _) => msg.subordinates.push(  {
+    let len = reader |> @protobuf.async_read_int32()
+    if len == 0 {
+      Employee::default()
+    } else {
+      Employee::async_read_with_limit(reader, limit=len)
+    }
+  })
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  reader.limit = new_limit
+  msg
+}
+pub async fn[W: @protobuf.AsyncWriter] Employee::async_write(self:Self, writer : W) -> Unit raise {
+  writer |> @protobuf.async_write_varint(10UL);
+  writer |> @protobuf.async_write_string(self.name)
+  writer |> @protobuf.async_write_varint(18UL);
+  writer |> @protobuf.async_write_string(self.id)
+  match self.organization {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(26UL);
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+
+    }
+    None => ()
+  }
+  match self.manager {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(34UL);
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+
+    }
+    None => ()
+  }
+  for item in self.subordinates {
+    writer |> @protobuf.async_write_varint(42UL)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+
+  }
 }
