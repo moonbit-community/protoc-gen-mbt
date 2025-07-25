@@ -74,7 +74,7 @@ pub impl Default for BarMessageP2 with default() -> BarMessageP2 {
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] BarMessageP2::read(
+pub fn[R : @protobuf.Reader] BarMessageP2::read(
   reader : R,
 ) -> BarMessageP2 raise {
   let reader = @protobuf.LimitedReader::new(reader)
@@ -82,7 +82,81 @@ pub async fn[R : @protobuf.AsyncReader] BarMessageP2::read(
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] BarMessageP2::read_with_limit(
+pub fn[R : @protobuf.Reader] BarMessageP2::read_with_limit(
+  reader : @protobuf.LimitedReader[R],
+  limit? : Int,
+) -> BarMessageP2 raise {
+  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
+    if l < limit {
+      raise @protobuf.EndOfStream
+    }
+    Some(l - limit)
+  } else {
+    None
+  }
+  reader.limit = limit
+  let msg = BarMessageP2::default()
+  try {
+    for {
+      match (reader |> @protobuf.read_tag()) {
+        (1, _) => msg.b_int32 = reader |> @protobuf.read_int32()
+        (_, wire) => reader |> @protobuf.read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  reader.limit = new_limit
+  msg
+}
+
+///|
+pub fn[W : @protobuf.Writer] BarMessageP2::write(
+  self : Self,
+  writer : W,
+) -> Unit raise {
+  writer |> @protobuf.write_varint(8UL)
+  writer |> @protobuf.write_int32(self.b_int32)
+}
+
+///|
+pub impl ToJson for BarMessageP2 with to_json(self) {
+  let json : Map[String, Json] = {}
+  if self.b_int32 != Default::default() {
+    json["bInt32"] = self.b_int32.to_json()
+  }
+  Json::object(json)
+}
+
+///|
+pub impl @json.FromJson for BarMessageP2 with from_json(
+  json : Json,
+  path : @json.JsonPath,
+) -> BarMessageP2 raise {
+  guard json is Object(obj) else {
+    raise @json.JsonDecodeError((path, "Expected an object for BarMessageP2"))
+  }
+  let message = BarMessageP2::default()
+  for key, value in obj {
+    match (key, value) {
+      ("bInt32", value) => message.b_int32 = @json.from_json(value, path~)
+      key => raise @json.JsonDecodeError((path, "Unknown field \{key}"))
+    }
+  }
+  message
+}
+
+///|
+pub async fn[R : @protobuf.AsyncReader] BarMessageP2::async_read(
+  reader : R,
+) -> BarMessageP2 raise {
+  let reader = @protobuf.LimitedReader::new(reader)
+  BarMessageP2::async_read_with_limit(reader)
+}
+
+///|
+pub async fn[R : @protobuf.AsyncReader] BarMessageP2::async_read_with_limit(
   reader : @protobuf.LimitedReader[R],
   limit? : Int,
 ) -> BarMessageP2 raise {
@@ -112,39 +186,12 @@ pub async fn[R : @protobuf.AsyncReader] BarMessageP2::read_with_limit(
 }
 
 ///|
-pub async fn[W : @protobuf.AsyncWriter] BarMessageP2::write(
+pub async fn[W : @protobuf.AsyncWriter] BarMessageP2::async_write(
   self : Self,
   writer : W,
 ) -> Unit raise {
   writer |> @protobuf.async_write_varint(8UL)
   writer |> @protobuf.async_write_int32(self.b_int32)
-}
-
-///|
-pub impl ToJson for BarMessageP2 with to_json(self) {
-  let json : Map[String, Json] = {}
-  if self.b_int32 != Default::default() {
-    json["bInt32"] = self.b_int32.to_json()
-  }
-  Json::object(json)
-}
-
-///|
-pub impl @json.FromJson for BarMessageP2 with from_json(
-  json : Json,
-  path : @json.JsonPath,
-) -> BarMessageP2 raise {
-  guard json is Object(obj) else {
-    raise @json.JsonDecodeError((path, "Expected an object for BarMessageP2"))
-  }
-  let message = BarMessageP2::default()
-  for key, value in obj {
-    match (key, value) {
-      ("bInt32", value) => message.b_int32 = @json.from_json(value, path~)
-      key => raise @json.JsonDecodeError((path, "Unknown field \{key}"))
-    }
-  }
-  message
 }
 
 ///|
@@ -417,7 +464,7 @@ pub impl Default for FooMessageP2 with default() -> FooMessageP2 {
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] FooMessageP2::read(
+pub fn[R : @protobuf.Reader] FooMessageP2::read(
   reader : R,
 ) -> FooMessageP2 raise {
   let reader = @protobuf.LimitedReader::new(reader)
@@ -425,7 +472,7 @@ pub async fn[R : @protobuf.AsyncReader] FooMessageP2::read(
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] FooMessageP2::read_with_limit(
+pub fn[R : @protobuf.Reader] FooMessageP2::read_with_limit(
   reader : @protobuf.LimitedReader[R],
   limit? : Int,
 ) -> FooMessageP2 raise {
@@ -441,40 +488,32 @@ pub async fn[R : @protobuf.AsyncReader] FooMessageP2::read_with_limit(
   let msg = FooMessageP2::default()
   try {
     for {
-      match (reader |> @protobuf.async_read_tag()) {
-        (1, _) => msg.f_int32 = reader |> @protobuf.async_read_int32()
-        (2, _) => msg.f_int64 = reader |> @protobuf.async_read_int64()
-        (3, _) => msg.f_uint32 = reader |> @protobuf.async_read_uint32() |> Some
-        (4, _) => msg.f_uint64 = reader |> @protobuf.async_read_uint64() |> Some
+      match (reader |> @protobuf.read_tag()) {
+        (1, _) => msg.f_int32 = reader |> @protobuf.read_int32()
+        (2, _) => msg.f_int64 = reader |> @protobuf.read_int64()
+        (3, _) => msg.f_uint32 = reader |> @protobuf.read_uint32() |> Some
+        (4, _) => msg.f_uint64 = reader |> @protobuf.read_uint64() |> Some
         (5, _) =>
-          msg.f_sint32 = (reader |> @protobuf.async_read_sint32()).inner()
-            |> Some
+          msg.f_sint32 = (reader |> @protobuf.read_sint32()).inner() |> Some
         (6, _) =>
-          msg.f_sint64 = (reader |> @protobuf.async_read_sint64()).inner()
-            |> Some
-        (7, _) => msg.f_bool = reader |> @protobuf.async_read_bool() |> Some
+          msg.f_sint64 = (reader |> @protobuf.read_sint64()).inner() |> Some
+        (7, _) => msg.f_bool = reader |> @protobuf.read_bool() |> Some
         (8, _) =>
           msg.f_foo_enum = reader
-            |> @protobuf.async_read_enum()
+            |> @protobuf.read_enum()
             |> FooEnumP2::from_enum
             |> Some
-        (9, _) =>
-          msg.f_fixed64 = reader |> @protobuf.async_read_fixed64() |> Some
-        (10, _) =>
-          msg.f_sfixed64 = reader |> @protobuf.async_read_sfixed64() |> Some
-        (11, _) =>
-          msg.f_fixed32 = reader |> @protobuf.async_read_fixed32() |> Some
-        (12, _) =>
-          msg.f_sfixed32 = reader |> @protobuf.async_read_sfixed32() |> Some
-        (13, _) =>
-          msg.f_double = reader |> @protobuf.async_read_double() |> Some
-        (14, _) => msg.f_float = reader |> @protobuf.async_read_float() |> Some
-        (15, _) => msg.f_bytes = reader |> @protobuf.async_read_bytes() |> Some
-        (16, _) =>
-          msg.f_string = reader |> @protobuf.async_read_string() |> Some
+        (9, _) => msg.f_fixed64 = reader |> @protobuf.read_fixed64() |> Some
+        (10, _) => msg.f_sfixed64 = reader |> @protobuf.read_sfixed64() |> Some
+        (11, _) => msg.f_fixed32 = reader |> @protobuf.read_fixed32() |> Some
+        (12, _) => msg.f_sfixed32 = reader |> @protobuf.read_sfixed32() |> Some
+        (13, _) => msg.f_double = reader |> @protobuf.read_double() |> Some
+        (14, _) => msg.f_float = reader |> @protobuf.read_float() |> Some
+        (15, _) => msg.f_bytes = reader |> @protobuf.read_bytes() |> Some
+        (16, _) => msg.f_string = reader |> @protobuf.read_string() |> Some
         (18, _) =>
           msg.f_bar_message = {
-              let len = reader |> @protobuf.async_read_int32()
+              let len = reader |> @protobuf.read_int32()
               if len == 0 {
                 BarMessageP2::default()
               } else {
@@ -482,21 +521,18 @@ pub async fn[R : @protobuf.AsyncReader] FooMessageP2::read_with_limit(
               }
             }
             |> Some
-        (19, _) =>
-          msg.f_repeated_int32.push(reader |> @protobuf.async_read_int32())
+        (19, _) => msg.f_repeated_int32.push(reader |> @protobuf.read_int32())
         (20, _) =>
           msg.f_repeated_packed_int32.push_iter(
-            (reader
-            |> @protobuf.async_read_packed(@protobuf.async_read_int32, None)).iter(),
+            (reader |> @protobuf.read_packed(@protobuf.read_int32, None)).iter(),
           )
         (21, _) =>
           msg.f_repeated_packed_float.push_iter(
-            (reader
-            |> @protobuf.async_read_packed(@protobuf.async_read_float, Some(4))).iter(),
+            (reader |> @protobuf.read_packed(@protobuf.read_float, Some(4))).iter(),
           )
         (23, _) =>
           msg.f_baz = {
-              let len = reader |> @protobuf.async_read_int32()
+              let len = reader |> @protobuf.read_int32()
               if len == 0 {
                 BazMessageP2::default()
               } else {
@@ -506,7 +542,7 @@ pub async fn[R : @protobuf.AsyncReader] FooMessageP2::read_with_limit(
             |> Some
         (24, _) =>
           msg.f_nested = {
-              let len = reader |> @protobuf.async_read_int32()
+              let len = reader |> @protobuf.read_int32()
               if len == 0 {
                 BazMessageP2_Nested::default()
               } else {
@@ -516,13 +552,13 @@ pub async fn[R : @protobuf.AsyncReader] FooMessageP2::read_with_limit(
             |> Some
         (25, _) =>
           msg.f_nested_enum = reader
-            |> @protobuf.async_read_enum()
+            |> @protobuf.read_enum()
             |> BazMessageP2_Nested_NestedEnum::from_enum
             |> Some
         (27, _) =>
           msg.f_map.push(
             {
-              let len = reader |> @protobuf.async_read_int32()
+              let len = reader |> @protobuf.read_int32()
               if len == 0 {
                 MapEntryP2::default()
               } else {
@@ -530,15 +566,14 @@ pub async fn[R : @protobuf.AsyncReader] FooMessageP2::read_with_limit(
               }
             },
           )
-        (28, _) => msg.f1 = reader |> @protobuf.async_read_int32() |> Some
-        (29, _) => msg.f2 = reader |> @protobuf.async_read_bool() |> Some
-        (30, _) => msg.f3 = reader |> @protobuf.async_read_string() |> Some
-        (31, _) =>
-          msg.f_repeated_string.push(reader |> @protobuf.async_read_string())
+        (28, _) => msg.f1 = reader |> @protobuf.read_int32() |> Some
+        (29, _) => msg.f2 = reader |> @protobuf.read_bool() |> Some
+        (30, _) => msg.f3 = reader |> @protobuf.read_string() |> Some
+        (31, _) => msg.f_repeated_string.push(reader |> @protobuf.read_string())
         (32, _) =>
           msg.f_repeated_baz_message.push(
             {
-              let len = reader |> @protobuf.async_read_int32()
+              let len = reader |> @protobuf.read_int32()
               if len == 0 {
                 BazMessageP2::default()
               } else {
@@ -547,23 +582,20 @@ pub async fn[R : @protobuf.AsyncReader] FooMessageP2::read_with_limit(
             },
           )
         (33, _) =>
-          msg.f_optional_string = reader
-            |> @protobuf.async_read_string()
-            |> Some
+          msg.f_optional_string = reader |> @protobuf.read_string() |> Some
         (34, _) =>
-          msg.f_default_int32 = reader |> @protobuf.async_read_int32() |> Some
+          msg.f_default_int32 = reader |> @protobuf.read_int32() |> Some
         (35, _) =>
-          msg.f_default_string = reader |> @protobuf.async_read_string() |> Some
-        (36, _) =>
-          msg.f_default_bool = reader |> @protobuf.async_read_bool() |> Some
+          msg.f_default_string = reader |> @protobuf.read_string() |> Some
+        (36, _) => msg.f_default_bool = reader |> @protobuf.read_bool() |> Some
         (37, _) =>
-          msg.f_default_double = reader |> @protobuf.async_read_double() |> Some
+          msg.f_default_double = reader |> @protobuf.read_double() |> Some
         (38, _) =>
           msg.f_default_enum = reader
-            |> @protobuf.async_read_enum()
+            |> @protobuf.read_enum()
             |> FooEnumP2::from_enum
             |> Some
-        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+        (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
   } catch {
@@ -575,236 +607,236 @@ pub async fn[R : @protobuf.AsyncReader] FooMessageP2::read_with_limit(
 }
 
 ///|
-pub async fn[W : @protobuf.AsyncWriter] FooMessageP2::write(
+pub fn[W : @protobuf.Writer] FooMessageP2::write(
   self : Self,
   writer : W,
 ) -> Unit raise {
-  writer |> @protobuf.async_write_varint(8UL)
-  writer |> @protobuf.async_write_int32(self.f_int32)
-  writer |> @protobuf.async_write_varint(16UL)
-  writer |> @protobuf.async_write_int64(self.f_int64)
+  writer |> @protobuf.write_varint(8UL)
+  writer |> @protobuf.write_int32(self.f_int32)
+  writer |> @protobuf.write_varint(16UL)
+  writer |> @protobuf.write_int64(self.f_int64)
   match self.f_uint32 {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(24UL)
-      writer |> @protobuf.async_write_uint32(v)
+      writer |> @protobuf.write_varint(24UL)
+      writer |> @protobuf.write_uint32(v)
     }
     None => ()
   }
   match self.f_uint64 {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(32UL)
-      writer |> @protobuf.async_write_uint64(v)
+      writer |> @protobuf.write_varint(32UL)
+      writer |> @protobuf.write_uint64(v)
     }
     None => ()
   }
   match self.f_sint32 {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(40UL)
-      writer |> @protobuf.async_write_sint32(v)
+      writer |> @protobuf.write_varint(40UL)
+      writer |> @protobuf.write_sint32(v)
     }
     None => ()
   }
   match self.f_sint64 {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(48UL)
-      writer |> @protobuf.async_write_sint64(v)
+      writer |> @protobuf.write_varint(48UL)
+      writer |> @protobuf.write_sint64(v)
     }
     None => ()
   }
   match self.f_bool {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(56UL)
-      writer |> @protobuf.async_write_bool(v)
+      writer |> @protobuf.write_varint(56UL)
+      writer |> @protobuf.write_bool(v)
     }
     None => ()
   }
   match self.f_foo_enum {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(64UL)
-      writer |> @protobuf.async_write_enum(v.to_enum())
+      writer |> @protobuf.write_varint(64UL)
+      writer |> @protobuf.write_enum(v.to_enum())
     }
     None => ()
   }
   match self.f_fixed64 {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(73UL)
-      writer |> @protobuf.async_write_fixed64(v)
+      writer |> @protobuf.write_varint(73UL)
+      writer |> @protobuf.write_fixed64(v)
     }
     None => ()
   }
   match self.f_sfixed64 {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(81UL)
-      writer |> @protobuf.async_write_sfixed64(v)
+      writer |> @protobuf.write_varint(81UL)
+      writer |> @protobuf.write_sfixed64(v)
     }
     None => ()
   }
   match self.f_fixed32 {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(93UL)
-      writer |> @protobuf.async_write_fixed32(v)
+      writer |> @protobuf.write_varint(93UL)
+      writer |> @protobuf.write_fixed32(v)
     }
     None => ()
   }
   match self.f_sfixed32 {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(101UL)
-      writer |> @protobuf.async_write_sfixed32(v)
+      writer |> @protobuf.write_varint(101UL)
+      writer |> @protobuf.write_sfixed32(v)
     }
     None => ()
   }
   match self.f_double {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(105UL)
-      writer |> @protobuf.async_write_double(v)
+      writer |> @protobuf.write_varint(105UL)
+      writer |> @protobuf.write_double(v)
     }
     None => ()
   }
   match self.f_float {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(117UL)
-      writer |> @protobuf.async_write_float(v)
+      writer |> @protobuf.write_varint(117UL)
+      writer |> @protobuf.write_float(v)
     }
     None => ()
   }
   match self.f_bytes {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(122UL)
-      writer |> @protobuf.async_write_bytes(v)
+      writer |> @protobuf.write_varint(122UL)
+      writer |> @protobuf.write_bytes(v)
     }
     None => ()
   }
   match self.f_string {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(130UL)
-      writer |> @protobuf.async_write_string(v)
+      writer |> @protobuf.write_varint(130UL)
+      writer |> @protobuf.write_string(v)
     }
     None => ()
   }
   match self.f_bar_message {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(146UL)
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v))
+      writer |> @protobuf.write_varint(146UL)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v))
       v.write(writer)
     }
     None => ()
   }
   for item in self.f_repeated_int32 {
-    writer |> @protobuf.async_write_varint(152UL)
-    writer |> @protobuf.async_write_int32(item)
+    writer |> @protobuf.write_varint(152UL)
+    writer |> @protobuf.write_int32(item)
   }
-  writer |> @protobuf.async_write_varint(162UL)
+  writer |> @protobuf.write_varint(162UL)
   let size = self.f_repeated_packed_int32
     .iter()
     .map(@protobuf.size_of)
     .fold(init=0U, UInt::op_add)
-  writer |> @protobuf.async_write_uint32(size)
+  writer |> @protobuf.write_uint32(size)
   for item in self.f_repeated_packed_int32 {
-    writer |> @protobuf.async_write_int32(item)
+    writer |> @protobuf.write_int32(item)
   }
-  writer |> @protobuf.async_write_varint(170UL)
+  writer |> @protobuf.write_varint(170UL)
   let size = self.f_repeated_packed_float.length().reinterpret_as_uint() * 4
-  writer |> @protobuf.async_write_uint32(size)
+  writer |> @protobuf.write_uint32(size)
   for item in self.f_repeated_packed_float {
-    writer |> @protobuf.async_write_float(item)
+    writer |> @protobuf.write_float(item)
   }
   match self.f_baz {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(186UL)
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v))
+      writer |> @protobuf.write_varint(186UL)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v))
       v.write(writer)
     }
     None => ()
   }
   match self.f_nested {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(194UL)
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v))
+      writer |> @protobuf.write_varint(194UL)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v))
       v.write(writer)
     }
     None => ()
   }
   match self.f_nested_enum {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(200UL)
-      writer |> @protobuf.async_write_enum(v.to_enum())
+      writer |> @protobuf.write_varint(200UL)
+      writer |> @protobuf.write_enum(v.to_enum())
     }
     None => ()
   }
   for item in self.f_map {
-    writer |> @protobuf.async_write_varint(218UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item))
+    writer |> @protobuf.write_varint(218UL)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item))
     item.write(writer)
   }
   match self.f1 {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(224UL)
-      writer |> @protobuf.async_write_int32(v)
+      writer |> @protobuf.write_varint(224UL)
+      writer |> @protobuf.write_int32(v)
     }
     None => ()
   }
   match self.f2 {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(232UL)
-      writer |> @protobuf.async_write_bool(v)
+      writer |> @protobuf.write_varint(232UL)
+      writer |> @protobuf.write_bool(v)
     }
     None => ()
   }
   match self.f3 {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(242UL)
-      writer |> @protobuf.async_write_string(v)
+      writer |> @protobuf.write_varint(242UL)
+      writer |> @protobuf.write_string(v)
     }
     None => ()
   }
   for item in self.f_repeated_string {
-    writer |> @protobuf.async_write_varint(250UL)
-    writer |> @protobuf.async_write_string(item)
+    writer |> @protobuf.write_varint(250UL)
+    writer |> @protobuf.write_string(item)
   }
   for item in self.f_repeated_baz_message {
-    writer |> @protobuf.async_write_varint(258UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item))
+    writer |> @protobuf.write_varint(258UL)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item))
     item.write(writer)
   }
   match self.f_optional_string {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(266UL)
-      writer |> @protobuf.async_write_string(v)
+      writer |> @protobuf.write_varint(266UL)
+      writer |> @protobuf.write_string(v)
     }
     None => ()
   }
   match self.f_default_int32 {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(272UL)
-      writer |> @protobuf.async_write_int32(v)
+      writer |> @protobuf.write_varint(272UL)
+      writer |> @protobuf.write_int32(v)
     }
     None => ()
   }
   match self.f_default_string {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(282UL)
-      writer |> @protobuf.async_write_string(v)
+      writer |> @protobuf.write_varint(282UL)
+      writer |> @protobuf.write_string(v)
     }
     None => ()
   }
   match self.f_default_bool {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(288UL)
-      writer |> @protobuf.async_write_bool(v)
+      writer |> @protobuf.write_varint(288UL)
+      writer |> @protobuf.write_bool(v)
     }
     None => ()
   }
   match self.f_default_double {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(297UL)
-      writer |> @protobuf.async_write_double(v)
+      writer |> @protobuf.write_varint(297UL)
+      writer |> @protobuf.write_double(v)
     }
     None => ()
   }
   match self.f_default_enum {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(304UL)
-      writer |> @protobuf.async_write_enum(v.to_enum())
+      writer |> @protobuf.write_varint(304UL)
+      writer |> @protobuf.write_enum(v.to_enum())
     }
     None => ()
   }
@@ -1039,6 +1071,400 @@ pub impl @json.FromJson for FooMessageP2 with from_json(
 }
 
 ///|
+pub async fn[R : @protobuf.AsyncReader] FooMessageP2::async_read(
+  reader : R,
+) -> FooMessageP2 raise {
+  let reader = @protobuf.LimitedReader::new(reader)
+  FooMessageP2::async_read_with_limit(reader)
+}
+
+///|
+pub async fn[R : @protobuf.AsyncReader] FooMessageP2::async_read_with_limit(
+  reader : @protobuf.LimitedReader[R],
+  limit? : Int,
+) -> FooMessageP2 raise {
+  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
+    if l < limit {
+      raise @protobuf.EndOfStream
+    }
+    Some(l - limit)
+  } else {
+    None
+  }
+  reader.limit = limit
+  let msg = FooMessageP2::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+        (1, _) => msg.f_int32 = reader |> @protobuf.async_read_int32()
+        (2, _) => msg.f_int64 = reader |> @protobuf.async_read_int64()
+        (3, _) => msg.f_uint32 = reader |> @protobuf.async_read_uint32() |> Some
+        (4, _) => msg.f_uint64 = reader |> @protobuf.async_read_uint64() |> Some
+        (5, _) =>
+          msg.f_sint32 = (reader |> @protobuf.async_read_sint32()).inner()
+            |> Some
+        (6, _) =>
+          msg.f_sint64 = (reader |> @protobuf.async_read_sint64()).inner()
+            |> Some
+        (7, _) => msg.f_bool = reader |> @protobuf.async_read_bool() |> Some
+        (8, _) =>
+          msg.f_foo_enum = reader
+            |> @protobuf.async_read_enum()
+            |> FooEnumP2::from_enum
+            |> Some
+        (9, _) =>
+          msg.f_fixed64 = reader |> @protobuf.async_read_fixed64() |> Some
+        (10, _) =>
+          msg.f_sfixed64 = reader |> @protobuf.async_read_sfixed64() |> Some
+        (11, _) =>
+          msg.f_fixed32 = reader |> @protobuf.async_read_fixed32() |> Some
+        (12, _) =>
+          msg.f_sfixed32 = reader |> @protobuf.async_read_sfixed32() |> Some
+        (13, _) =>
+          msg.f_double = reader |> @protobuf.async_read_double() |> Some
+        (14, _) => msg.f_float = reader |> @protobuf.async_read_float() |> Some
+        (15, _) => msg.f_bytes = reader |> @protobuf.async_read_bytes() |> Some
+        (16, _) =>
+          msg.f_string = reader |> @protobuf.async_read_string() |> Some
+        (18, _) =>
+          msg.f_bar_message = {
+              let len = reader |> @protobuf.async_read_int32()
+              if len == 0 {
+                BarMessageP2::default()
+              } else {
+                BarMessageP2::async_read_with_limit(reader, limit=len)
+              }
+            }
+            |> Some
+        (19, _) =>
+          msg.f_repeated_int32.push(reader |> @protobuf.async_read_int32())
+        (20, _) =>
+          msg.f_repeated_packed_int32.push_iter(
+            (reader
+            |> @protobuf.async_read_packed(@protobuf.async_read_int32, None)).iter(),
+          )
+        (21, _) =>
+          msg.f_repeated_packed_float.push_iter(
+            (reader
+            |> @protobuf.async_read_packed(@protobuf.async_read_float, Some(4))).iter(),
+          )
+        (23, _) =>
+          msg.f_baz = {
+              let len = reader |> @protobuf.async_read_int32()
+              if len == 0 {
+                BazMessageP2::default()
+              } else {
+                BazMessageP2::async_read_with_limit(reader, limit=len)
+              }
+            }
+            |> Some
+        (24, _) =>
+          msg.f_nested = {
+              let len = reader |> @protobuf.async_read_int32()
+              if len == 0 {
+                BazMessageP2_Nested::default()
+              } else {
+                BazMessageP2_Nested::async_read_with_limit(reader, limit=len)
+              }
+            }
+            |> Some
+        (25, _) =>
+          msg.f_nested_enum = reader
+            |> @protobuf.async_read_enum()
+            |> BazMessageP2_Nested_NestedEnum::from_enum
+            |> Some
+        (27, _) =>
+          msg.f_map.push(
+            {
+              let len = reader |> @protobuf.async_read_int32()
+              if len == 0 {
+                MapEntryP2::default()
+              } else {
+                MapEntryP2::async_read_with_limit(reader, limit=len)
+              }
+            },
+          )
+        (28, _) => msg.f1 = reader |> @protobuf.async_read_int32() |> Some
+        (29, _) => msg.f2 = reader |> @protobuf.async_read_bool() |> Some
+        (30, _) => msg.f3 = reader |> @protobuf.async_read_string() |> Some
+        (31, _) =>
+          msg.f_repeated_string.push(reader |> @protobuf.async_read_string())
+        (32, _) =>
+          msg.f_repeated_baz_message.push(
+            {
+              let len = reader |> @protobuf.async_read_int32()
+              if len == 0 {
+                BazMessageP2::default()
+              } else {
+                BazMessageP2::async_read_with_limit(reader, limit=len)
+              }
+            },
+          )
+        (33, _) =>
+          msg.f_optional_string = reader
+            |> @protobuf.async_read_string()
+            |> Some
+        (34, _) =>
+          msg.f_default_int32 = reader |> @protobuf.async_read_int32() |> Some
+        (35, _) =>
+          msg.f_default_string = reader |> @protobuf.async_read_string() |> Some
+        (36, _) =>
+          msg.f_default_bool = reader |> @protobuf.async_read_bool() |> Some
+        (37, _) =>
+          msg.f_default_double = reader |> @protobuf.async_read_double() |> Some
+        (38, _) =>
+          msg.f_default_enum = reader
+            |> @protobuf.async_read_enum()
+            |> FooEnumP2::from_enum
+            |> Some
+        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  reader.limit = new_limit
+  msg
+}
+
+///|
+pub async fn[W : @protobuf.AsyncWriter] FooMessageP2::async_write(
+  self : Self,
+  writer : W,
+) -> Unit raise {
+  writer |> @protobuf.async_write_varint(8UL)
+  writer |> @protobuf.async_write_int32(self.f_int32)
+  writer |> @protobuf.async_write_varint(16UL)
+  writer |> @protobuf.async_write_int64(self.f_int64)
+  match self.f_uint32 {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(24UL)
+      writer |> @protobuf.async_write_uint32(v)
+    }
+    None => ()
+  }
+  match self.f_uint64 {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(32UL)
+      writer |> @protobuf.async_write_uint64(v)
+    }
+    None => ()
+  }
+  match self.f_sint32 {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(40UL)
+      writer |> @protobuf.async_write_sint32(v)
+    }
+    None => ()
+  }
+  match self.f_sint64 {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(48UL)
+      writer |> @protobuf.async_write_sint64(v)
+    }
+    None => ()
+  }
+  match self.f_bool {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(56UL)
+      writer |> @protobuf.async_write_bool(v)
+    }
+    None => ()
+  }
+  match self.f_foo_enum {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(64UL)
+      writer |> @protobuf.async_write_enum(v.to_enum())
+    }
+    None => ()
+  }
+  match self.f_fixed64 {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(73UL)
+      writer |> @protobuf.async_write_fixed64(v)
+    }
+    None => ()
+  }
+  match self.f_sfixed64 {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(81UL)
+      writer |> @protobuf.async_write_sfixed64(v)
+    }
+    None => ()
+  }
+  match self.f_fixed32 {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(93UL)
+      writer |> @protobuf.async_write_fixed32(v)
+    }
+    None => ()
+  }
+  match self.f_sfixed32 {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(101UL)
+      writer |> @protobuf.async_write_sfixed32(v)
+    }
+    None => ()
+  }
+  match self.f_double {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(105UL)
+      writer |> @protobuf.async_write_double(v)
+    }
+    None => ()
+  }
+  match self.f_float {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(117UL)
+      writer |> @protobuf.async_write_float(v)
+    }
+    None => ()
+  }
+  match self.f_bytes {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(122UL)
+      writer |> @protobuf.async_write_bytes(v)
+    }
+    None => ()
+  }
+  match self.f_string {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(130UL)
+      writer |> @protobuf.async_write_string(v)
+    }
+    None => ()
+  }
+  match self.f_bar_message {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(146UL)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v))
+      v.async_write(writer)
+    }
+    None => ()
+  }
+  for item in self.f_repeated_int32 {
+    writer |> @protobuf.async_write_varint(152UL)
+    writer |> @protobuf.async_write_int32(item)
+  }
+  writer |> @protobuf.async_write_varint(162UL)
+  let size = self.f_repeated_packed_int32
+    .iter()
+    .map(@protobuf.size_of)
+    .fold(init=0U, UInt::op_add)
+  writer |> @protobuf.async_write_uint32(size)
+  for item in self.f_repeated_packed_int32 {
+    writer |> @protobuf.async_write_int32(item)
+  }
+  writer |> @protobuf.async_write_varint(170UL)
+  let size = self.f_repeated_packed_float.length().reinterpret_as_uint() * 4
+  writer |> @protobuf.async_write_uint32(size)
+  for item in self.f_repeated_packed_float {
+    writer |> @protobuf.async_write_float(item)
+  }
+  match self.f_baz {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(186UL)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v))
+      v.async_write(writer)
+    }
+    None => ()
+  }
+  match self.f_nested {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(194UL)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v))
+      v.async_write(writer)
+    }
+    None => ()
+  }
+  match self.f_nested_enum {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(200UL)
+      writer |> @protobuf.async_write_enum(v.to_enum())
+    }
+    None => ()
+  }
+  for item in self.f_map {
+    writer |> @protobuf.async_write_varint(218UL)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item))
+    item.async_write(writer)
+  }
+  match self.f1 {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(224UL)
+      writer |> @protobuf.async_write_int32(v)
+    }
+    None => ()
+  }
+  match self.f2 {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(232UL)
+      writer |> @protobuf.async_write_bool(v)
+    }
+    None => ()
+  }
+  match self.f3 {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(242UL)
+      writer |> @protobuf.async_write_string(v)
+    }
+    None => ()
+  }
+  for item in self.f_repeated_string {
+    writer |> @protobuf.async_write_varint(250UL)
+    writer |> @protobuf.async_write_string(item)
+  }
+  for item in self.f_repeated_baz_message {
+    writer |> @protobuf.async_write_varint(258UL)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item))
+    item.async_write(writer)
+  }
+  match self.f_optional_string {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(266UL)
+      writer |> @protobuf.async_write_string(v)
+    }
+    None => ()
+  }
+  match self.f_default_int32 {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(272UL)
+      writer |> @protobuf.async_write_int32(v)
+    }
+    None => ()
+  }
+  match self.f_default_string {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(282UL)
+      writer |> @protobuf.async_write_string(v)
+    }
+    None => ()
+  }
+  match self.f_default_bool {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(288UL)
+      writer |> @protobuf.async_write_bool(v)
+    }
+    None => ()
+  }
+  match self.f_default_double {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(297UL)
+      writer |> @protobuf.async_write_double(v)
+    }
+    None => ()
+  }
+  match self.f_default_enum {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(304UL)
+      writer |> @protobuf.async_write_enum(v.to_enum())
+    }
+    None => ()
+  }
+}
+
+///|
 pub(all) struct MapEntryP2 {
   mut key : String
   mut value : Int
@@ -1062,15 +1488,13 @@ pub impl Default for MapEntryP2 with default() -> MapEntryP2 {
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] MapEntryP2::read(
-  reader : R,
-) -> MapEntryP2 raise {
+pub fn[R : @protobuf.Reader] MapEntryP2::read(reader : R) -> MapEntryP2 raise {
   let reader = @protobuf.LimitedReader::new(reader)
   MapEntryP2::read_with_limit(reader)
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] MapEntryP2::read_with_limit(
+pub fn[R : @protobuf.Reader] MapEntryP2::read_with_limit(
   reader : @protobuf.LimitedReader[R],
   limit? : Int,
 ) -> MapEntryP2 raise {
@@ -1086,10 +1510,10 @@ pub async fn[R : @protobuf.AsyncReader] MapEntryP2::read_with_limit(
   let msg = MapEntryP2::default()
   try {
     for {
-      match (reader |> @protobuf.async_read_tag()) {
-        (1, _) => msg.key = reader |> @protobuf.async_read_string()
-        (2, _) => msg.value = reader |> @protobuf.async_read_int32()
-        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      match (reader |> @protobuf.read_tag()) {
+        (1, _) => msg.key = reader |> @protobuf.read_string()
+        (2, _) => msg.value = reader |> @protobuf.read_int32()
+        (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
   } catch {
@@ -1101,14 +1525,14 @@ pub async fn[R : @protobuf.AsyncReader] MapEntryP2::read_with_limit(
 }
 
 ///|
-pub async fn[W : @protobuf.AsyncWriter] MapEntryP2::write(
+pub fn[W : @protobuf.Writer] MapEntryP2::write(
   self : Self,
   writer : W,
 ) -> Unit raise {
-  writer |> @protobuf.async_write_varint(10UL)
-  writer |> @protobuf.async_write_string(self.key)
-  writer |> @protobuf.async_write_varint(16UL)
-  writer |> @protobuf.async_write_int32(self.value)
+  writer |> @protobuf.write_varint(10UL)
+  writer |> @protobuf.write_string(self.key)
+  writer |> @protobuf.write_varint(16UL)
+  writer |> @protobuf.write_int32(self.value)
 }
 
 ///|
@@ -1140,6 +1564,56 @@ pub impl @json.FromJson for MapEntryP2 with from_json(
     }
   }
   message
+}
+
+///|
+pub async fn[R : @protobuf.AsyncReader] MapEntryP2::async_read(
+  reader : R,
+) -> MapEntryP2 raise {
+  let reader = @protobuf.LimitedReader::new(reader)
+  MapEntryP2::async_read_with_limit(reader)
+}
+
+///|
+pub async fn[R : @protobuf.AsyncReader] MapEntryP2::async_read_with_limit(
+  reader : @protobuf.LimitedReader[R],
+  limit? : Int,
+) -> MapEntryP2 raise {
+  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
+    if l < limit {
+      raise @protobuf.EndOfStream
+    }
+    Some(l - limit)
+  } else {
+    None
+  }
+  reader.limit = limit
+  let msg = MapEntryP2::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+        (1, _) => msg.key = reader |> @protobuf.async_read_string()
+        (2, _) => msg.value = reader |> @protobuf.async_read_int32()
+        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  reader.limit = new_limit
+  msg
+}
+
+///|
+pub async fn[W : @protobuf.AsyncWriter] MapEntryP2::async_write(
+  self : Self,
+  writer : W,
+) -> Unit raise {
+  writer |> @protobuf.async_write_varint(10UL)
+  writer |> @protobuf.async_write_string(self.key)
+  writer |> @protobuf.async_write_varint(16UL)
+  writer |> @protobuf.async_write_int32(self.value)
 }
 
 ///|
@@ -1234,7 +1708,7 @@ pub impl Default for BazMessageP2_Nested_NestedMessage with default() -> BazMess
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] BazMessageP2_Nested_NestedMessage::read(
+pub fn[R : @protobuf.Reader] BazMessageP2_Nested_NestedMessage::read(
   reader : R,
 ) -> BazMessageP2_Nested_NestedMessage raise {
   let reader = @protobuf.LimitedReader::new(reader)
@@ -1242,7 +1716,7 @@ pub async fn[R : @protobuf.AsyncReader] BazMessageP2_Nested_NestedMessage::read(
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] BazMessageP2_Nested_NestedMessage::read_with_limit(
+pub fn[R : @protobuf.Reader] BazMessageP2_Nested_NestedMessage::read_with_limit(
   reader : @protobuf.LimitedReader[R],
   limit? : Int,
 ) -> BazMessageP2_Nested_NestedMessage raise {
@@ -1258,9 +1732,9 @@ pub async fn[R : @protobuf.AsyncReader] BazMessageP2_Nested_NestedMessage::read_
   let msg = BazMessageP2_Nested_NestedMessage::default()
   try {
     for {
-      match (reader |> @protobuf.async_read_tag()) {
-        (1, _) => msg.f_nested = reader |> @protobuf.async_read_int32()
-        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      match (reader |> @protobuf.read_tag()) {
+        (1, _) => msg.f_nested = reader |> @protobuf.read_int32()
+        (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
   } catch {
@@ -1272,12 +1746,12 @@ pub async fn[R : @protobuf.AsyncReader] BazMessageP2_Nested_NestedMessage::read_
 }
 
 ///|
-pub async fn[W : @protobuf.AsyncWriter] BazMessageP2_Nested_NestedMessage::write(
+pub fn[W : @protobuf.Writer] BazMessageP2_Nested_NestedMessage::write(
   self : Self,
   writer : W,
 ) -> Unit raise {
-  writer |> @protobuf.async_write_varint(8UL)
-  writer |> @protobuf.async_write_int32(self.f_nested)
+  writer |> @protobuf.write_varint(8UL)
+  writer |> @protobuf.write_int32(self.f_nested)
 }
 
 ///|
@@ -1310,6 +1784,53 @@ pub impl @json.FromJson for BazMessageP2_Nested_NestedMessage with from_json(
 }
 
 ///|
+pub async fn[R : @protobuf.AsyncReader] BazMessageP2_Nested_NestedMessage::async_read(
+  reader : R,
+) -> BazMessageP2_Nested_NestedMessage raise {
+  let reader = @protobuf.LimitedReader::new(reader)
+  BazMessageP2_Nested_NestedMessage::async_read_with_limit(reader)
+}
+
+///|
+pub async fn[R : @protobuf.AsyncReader] BazMessageP2_Nested_NestedMessage::async_read_with_limit(
+  reader : @protobuf.LimitedReader[R],
+  limit? : Int,
+) -> BazMessageP2_Nested_NestedMessage raise {
+  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
+    if l < limit {
+      raise @protobuf.EndOfStream
+    }
+    Some(l - limit)
+  } else {
+    None
+  }
+  reader.limit = limit
+  let msg = BazMessageP2_Nested_NestedMessage::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+        (1, _) => msg.f_nested = reader |> @protobuf.async_read_int32()
+        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  reader.limit = new_limit
+  msg
+}
+
+///|
+pub async fn[W : @protobuf.AsyncWriter] BazMessageP2_Nested_NestedMessage::async_write(
+  self : Self,
+  writer : W,
+) -> Unit raise {
+  writer |> @protobuf.async_write_varint(8UL)
+  writer |> @protobuf.async_write_int32(self.f_nested)
+}
+
+///|
 pub(all) struct BazMessageP2_Nested {
   mut f_nested : BazMessageP2_Nested_NestedMessage?
 } derive(Eq, Show)
@@ -1335,7 +1856,7 @@ pub impl Default for BazMessageP2_Nested with default() -> BazMessageP2_Nested {
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] BazMessageP2_Nested::read(
+pub fn[R : @protobuf.Reader] BazMessageP2_Nested::read(
   reader : R,
 ) -> BazMessageP2_Nested raise {
   let reader = @protobuf.LimitedReader::new(reader)
@@ -1343,7 +1864,7 @@ pub async fn[R : @protobuf.AsyncReader] BazMessageP2_Nested::read(
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] BazMessageP2_Nested::read_with_limit(
+pub fn[R : @protobuf.Reader] BazMessageP2_Nested::read_with_limit(
   reader : @protobuf.LimitedReader[R],
   limit? : Int,
 ) -> BazMessageP2_Nested raise {
@@ -1359,10 +1880,10 @@ pub async fn[R : @protobuf.AsyncReader] BazMessageP2_Nested::read_with_limit(
   let msg = BazMessageP2_Nested::default()
   try {
     for {
-      match (reader |> @protobuf.async_read_tag()) {
+      match (reader |> @protobuf.read_tag()) {
         (1, _) =>
           msg.f_nested = {
-              let len = reader |> @protobuf.async_read_int32()
+              let len = reader |> @protobuf.read_int32()
               if len == 0 {
                 BazMessageP2_Nested_NestedMessage::default()
               } else {
@@ -1373,7 +1894,7 @@ pub async fn[R : @protobuf.AsyncReader] BazMessageP2_Nested::read_with_limit(
               }
             }
             |> Some
-        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+        (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
   } catch {
@@ -1385,14 +1906,14 @@ pub async fn[R : @protobuf.AsyncReader] BazMessageP2_Nested::read_with_limit(
 }
 
 ///|
-pub async fn[W : @protobuf.AsyncWriter] BazMessageP2_Nested::write(
+pub fn[W : @protobuf.Writer] BazMessageP2_Nested::write(
   self : Self,
   writer : W,
 ) -> Unit raise {
   match self.f_nested {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(10UL)
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v))
+      writer |> @protobuf.write_varint(10UL)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v))
       v.write(writer)
     }
     None => ()
@@ -1428,6 +1949,71 @@ pub impl @json.FromJson for BazMessageP2_Nested with from_json(
     }
   }
   message
+}
+
+///|
+pub async fn[R : @protobuf.AsyncReader] BazMessageP2_Nested::async_read(
+  reader : R,
+) -> BazMessageP2_Nested raise {
+  let reader = @protobuf.LimitedReader::new(reader)
+  BazMessageP2_Nested::async_read_with_limit(reader)
+}
+
+///|
+pub async fn[R : @protobuf.AsyncReader] BazMessageP2_Nested::async_read_with_limit(
+  reader : @protobuf.LimitedReader[R],
+  limit? : Int,
+) -> BazMessageP2_Nested raise {
+  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
+    if l < limit {
+      raise @protobuf.EndOfStream
+    }
+    Some(l - limit)
+  } else {
+    None
+  }
+  reader.limit = limit
+  let msg = BazMessageP2_Nested::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+        (1, _) =>
+          msg.f_nested = {
+              let len = reader |> @protobuf.async_read_int32()
+              if len == 0 {
+                BazMessageP2_Nested_NestedMessage::default()
+              } else {
+                BazMessageP2_Nested_NestedMessage::async_read_with_limit(
+                  reader,
+                  limit=len,
+                )
+              }
+            }
+            |> Some
+        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  reader.limit = new_limit
+  msg
+}
+
+///|
+pub async fn[W : @protobuf.AsyncWriter] BazMessageP2_Nested::async_write(
+  self : Self,
+  writer : W,
+) -> Unit raise {
+  match self.f_nested {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(10UL)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v))
+      v.async_write(writer)
+    }
+    None => ()
+  }
 }
 
 ///|
@@ -1471,7 +2057,7 @@ pub impl Default for BazMessageP2 with default() -> BazMessageP2 {
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] BazMessageP2::read(
+pub fn[R : @protobuf.Reader] BazMessageP2::read(
   reader : R,
 ) -> BazMessageP2 raise {
   let reader = @protobuf.LimitedReader::new(reader)
@@ -1479,7 +2065,7 @@ pub async fn[R : @protobuf.AsyncReader] BazMessageP2::read(
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] BazMessageP2::read_with_limit(
+pub fn[R : @protobuf.Reader] BazMessageP2::read_with_limit(
   reader : @protobuf.LimitedReader[R],
   limit? : Int,
 ) -> BazMessageP2 raise {
@@ -1495,10 +2081,10 @@ pub async fn[R : @protobuf.AsyncReader] BazMessageP2::read_with_limit(
   let msg = BazMessageP2::default()
   try {
     for {
-      match (reader |> @protobuf.async_read_tag()) {
+      match (reader |> @protobuf.read_tag()) {
         (1, _) =>
           msg.nested = {
-              let len = reader |> @protobuf.async_read_int32()
+              let len = reader |> @protobuf.read_int32()
               if len == 0 {
                 BazMessageP2_Nested::default()
               } else {
@@ -1506,9 +2092,9 @@ pub async fn[R : @protobuf.AsyncReader] BazMessageP2::read_with_limit(
               }
             }
             |> Some
-        (2, _) => msg.b_int64 = reader |> @protobuf.async_read_int64() |> Some
-        (3, _) => msg.b_string = reader |> @protobuf.async_read_string() |> Some
-        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+        (2, _) => msg.b_int64 = reader |> @protobuf.read_int64() |> Some
+        (3, _) => msg.b_string = reader |> @protobuf.read_string() |> Some
+        (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
   } catch {
@@ -1520,29 +2106,29 @@ pub async fn[R : @protobuf.AsyncReader] BazMessageP2::read_with_limit(
 }
 
 ///|
-pub async fn[W : @protobuf.AsyncWriter] BazMessageP2::write(
+pub fn[W : @protobuf.Writer] BazMessageP2::write(
   self : Self,
   writer : W,
 ) -> Unit raise {
   match self.nested {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(10UL)
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v))
+      writer |> @protobuf.write_varint(10UL)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v))
       v.write(writer)
     }
     None => ()
   }
   match self.b_int64 {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(16UL)
-      writer |> @protobuf.async_write_int64(v)
+      writer |> @protobuf.write_varint(16UL)
+      writer |> @protobuf.write_int64(v)
     }
     None => ()
   }
   match self.b_string {
     Some(v) => {
-      writer |> @protobuf.async_write_varint(26UL)
-      writer |> @protobuf.async_write_string(v)
+      writer |> @protobuf.write_varint(26UL)
+      writer |> @protobuf.write_string(v)
     }
     None => ()
   }
@@ -1588,6 +2174,84 @@ pub impl @json.FromJson for BazMessageP2 with from_json(
 }
 
 ///|
+pub async fn[R : @protobuf.AsyncReader] BazMessageP2::async_read(
+  reader : R,
+) -> BazMessageP2 raise {
+  let reader = @protobuf.LimitedReader::new(reader)
+  BazMessageP2::async_read_with_limit(reader)
+}
+
+///|
+pub async fn[R : @protobuf.AsyncReader] BazMessageP2::async_read_with_limit(
+  reader : @protobuf.LimitedReader[R],
+  limit? : Int,
+) -> BazMessageP2 raise {
+  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
+    if l < limit {
+      raise @protobuf.EndOfStream
+    }
+    Some(l - limit)
+  } else {
+    None
+  }
+  reader.limit = limit
+  let msg = BazMessageP2::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+        (1, _) =>
+          msg.nested = {
+              let len = reader |> @protobuf.async_read_int32()
+              if len == 0 {
+                BazMessageP2_Nested::default()
+              } else {
+                BazMessageP2_Nested::async_read_with_limit(reader, limit=len)
+              }
+            }
+            |> Some
+        (2, _) => msg.b_int64 = reader |> @protobuf.async_read_int64() |> Some
+        (3, _) => msg.b_string = reader |> @protobuf.async_read_string() |> Some
+        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  reader.limit = new_limit
+  msg
+}
+
+///|
+pub async fn[W : @protobuf.AsyncWriter] BazMessageP2::async_write(
+  self : Self,
+  writer : W,
+) -> Unit raise {
+  match self.nested {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(10UL)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v))
+      v.async_write(writer)
+    }
+    None => ()
+  }
+  match self.b_int64 {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(16UL)
+      writer |> @protobuf.async_write_int64(v)
+    }
+    None => ()
+  }
+  match self.b_string {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(26UL)
+      writer |> @protobuf.async_write_string(v)
+    }
+    None => ()
+  }
+}
+
+///|
 pub(all) struct RepeatedMessageP2 {
   mut bar_message : Array[BarMessageP2]
 } derive(Eq, Show)
@@ -1609,7 +2273,7 @@ pub impl Default for RepeatedMessageP2 with default() -> RepeatedMessageP2 {
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] RepeatedMessageP2::read(
+pub fn[R : @protobuf.Reader] RepeatedMessageP2::read(
   reader : R,
 ) -> RepeatedMessageP2 raise {
   let reader = @protobuf.LimitedReader::new(reader)
@@ -1617,7 +2281,7 @@ pub async fn[R : @protobuf.AsyncReader] RepeatedMessageP2::read(
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] RepeatedMessageP2::read_with_limit(
+pub fn[R : @protobuf.Reader] RepeatedMessageP2::read_with_limit(
   reader : @protobuf.LimitedReader[R],
   limit? : Int,
 ) -> RepeatedMessageP2 raise {
@@ -1633,11 +2297,11 @@ pub async fn[R : @protobuf.AsyncReader] RepeatedMessageP2::read_with_limit(
   let msg = RepeatedMessageP2::default()
   try {
     for {
-      match (reader |> @protobuf.async_read_tag()) {
+      match (reader |> @protobuf.read_tag()) {
         (1, _) =>
           msg.bar_message.push(
             {
-              let len = reader |> @protobuf.async_read_int32()
+              let len = reader |> @protobuf.read_int32()
               if len == 0 {
                 BarMessageP2::default()
               } else {
@@ -1645,7 +2309,7 @@ pub async fn[R : @protobuf.AsyncReader] RepeatedMessageP2::read_with_limit(
               }
             },
           )
-        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+        (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
   } catch {
@@ -1657,13 +2321,13 @@ pub async fn[R : @protobuf.AsyncReader] RepeatedMessageP2::read_with_limit(
 }
 
 ///|
-pub async fn[W : @protobuf.AsyncWriter] RepeatedMessageP2::write(
+pub fn[W : @protobuf.Writer] RepeatedMessageP2::write(
   self : Self,
   writer : W,
 ) -> Unit raise {
   for item in self.bar_message {
-    writer |> @protobuf.async_write_varint(10UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item))
+    writer |> @protobuf.write_varint(10UL)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item))
     item.write(writer)
   }
 }
@@ -1696,4 +2360,64 @@ pub impl @json.FromJson for RepeatedMessageP2 with from_json(
     }
   }
   message
+}
+
+///|
+pub async fn[R : @protobuf.AsyncReader] RepeatedMessageP2::async_read(
+  reader : R,
+) -> RepeatedMessageP2 raise {
+  let reader = @protobuf.LimitedReader::new(reader)
+  RepeatedMessageP2::async_read_with_limit(reader)
+}
+
+///|
+pub async fn[R : @protobuf.AsyncReader] RepeatedMessageP2::async_read_with_limit(
+  reader : @protobuf.LimitedReader[R],
+  limit? : Int,
+) -> RepeatedMessageP2 raise {
+  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
+    if l < limit {
+      raise @protobuf.EndOfStream
+    }
+    Some(l - limit)
+  } else {
+    None
+  }
+  reader.limit = limit
+  let msg = RepeatedMessageP2::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+        (1, _) =>
+          msg.bar_message.push(
+            {
+              let len = reader |> @protobuf.async_read_int32()
+              if len == 0 {
+                BarMessageP2::default()
+              } else {
+                BarMessageP2::async_read_with_limit(reader, limit=len)
+              }
+            },
+          )
+        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  reader.limit = new_limit
+  msg
+}
+
+///|
+pub async fn[W : @protobuf.AsyncWriter] RepeatedMessageP2::async_write(
+  self : Self,
+  writer : W,
+) -> Unit raise {
+  for item in self.bar_message {
+    writer |> @protobuf.async_write_varint(10UL)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item))
+    item.async_write(writer)
+  }
 }

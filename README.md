@@ -42,6 +42,7 @@ You can pass project parameters using `--mbt_opt`, separated by commas:
 | Name          | Type    | Description                                   | Default Value         |
 |---------------|---------|-----------------------------------------------|----------------------|
 | json          | bool    | Generate additional `JSON` serialization code   | true            |
+| async         | bool    | Generate async read/write code                 | true                 |
 | username      | string  | Username to be used in `moon.mod.json`        | username    |
 | project_name  | string  | Project name to be used in `moon.mod.json` & `moon.pkg.json`     | protoc-gen-mbt    |
 
