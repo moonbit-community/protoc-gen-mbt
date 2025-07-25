@@ -185,7 +185,7 @@ fn CodeGenerator::get_moonbit_type(
         }
         return message_path.path() |> to_camel_case
       }
-      "UNDEFINED_MESSAGE"
+      raise UnsupportedType("Message \{message_name} not found")
     }
     FieldType::TYPE_BYTES => "Bytes"
     FieldType::TYPE_UINT32 => "UInt"
@@ -198,7 +198,7 @@ fn CodeGenerator::get_moonbit_type(
         }
         return path.path() |> to_camel_case
       }
-      "UNDEFINED_ENUM"
+      raise UnsupportedType("Enum \{enum_name} not found")
     }
     FieldType::TYPE_SFIXED32 => "Int"
     FieldType::TYPE_SFIXED64 => "Int64"
