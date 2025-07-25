@@ -17,6 +17,47 @@ fn convert_args(args : String) -> Map[String, String] {
 }
 
 ///|
+fn title(s : String) -> String {
+  let sb = StringBuilder::new()
+  let mut is_word_start = true
+  for c in s {
+    if c == ' ' {
+      sb.write_char(' ')
+      is_word_start = true
+    } else if is_word_start {
+      sb.write_char(c.to_ascii_uppercase())
+      is_word_start = false
+    } else {
+      sb.write_char(c)
+    }
+  }
+  sb.to_string()
+}
+
+///|
+test "title" {
+  inspect(title("hello world"), content="Hello World")
+  inspect(title("the quick brown fox"), content="The Quick Brown Fox")
+  inspect(title("a b c"), content="A B C")
+}
+
+///|
+test "title/edge_cases" {
+  inspect(title(""), content="")
+  inspect(title(" "), content=" ")
+  inspect(title("  "), content="  ")
+  inspect(title("hello"), content="Hello")
+}
+
+///|
+test "title/special_characters" {
+  inspect(title("hello  world UK"), content="Hello  World UK")
+  inspect(title(" hello world"), content=" Hello World")
+  inspect(title("hello world "), content="Hello World ")
+  inspect(title("123 abc"), content="123 Abc")
+}
+
+///|
 fn to_camel_case(s : String) -> String {
   let b = StringBuilder::new()
   let chars = s.to_array()
