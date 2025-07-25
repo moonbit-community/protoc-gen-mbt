@@ -47,7 +47,7 @@ impl @lib.AsyncWriter for Stdout with write(self, bytes : @bytes.View) -> Unit r
 ///|
 async fn parse_request() -> @compiler.CodeGeneratorResponse noraise {
   let reader = Stdin::new()
-  let request = @compiler.CodeGeneratorRequest::read(reader) catch {
+  let request = @compiler.CodeGeneratorRequest::async_read(reader) catch {
     err => {
       let response = @compiler.CodeGeneratorResponse::default()
       response.supported_features = Some(1)
@@ -74,6 +74,6 @@ async fn output_response(
   response : @compiler.CodeGeneratorResponse,
 ) -> Unit raise {
   let stdout = Stdout::new()
-  response.write(stdout)
+  response.async_write(stdout)
   stdout.inner().close()
 }
