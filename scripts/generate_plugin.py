@@ -52,6 +52,7 @@ def main():
             module_config = json.load(f)
 
         module_config["deps"]["tonyfettes/uv"] = "0.10.1"
+        module_config["deps"]["moonbitlang/async"] = "0.2.2"
 
         with open(PLUGIN_PROTO_DIR / "moon.mod.json", "w") as f:
             json.dump(module_config, f, indent=2)
