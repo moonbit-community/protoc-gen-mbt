@@ -41,6 +41,11 @@ fn CodeGenerator::support_json(self : CodeGenerator) -> Bool {
 }
 
 ///|
+fn CodeGenerator::support_async(self : CodeGenerator) -> Bool {
+  self.parameter.get_or_default("async", "true") == "true"
+}
+
+///|
 fn CodeGenerator::find_enum(self : CodeGenerator, type_name : String) -> Enum? {
   for name, pkg in self.package_dictionary {
     let name = name.trim_start(".")
