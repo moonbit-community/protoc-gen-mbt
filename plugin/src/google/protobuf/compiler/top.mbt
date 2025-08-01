@@ -49,25 +49,9 @@ pub fn Version::new(
 }
 
 ///|
-pub fn[R : @protobuf.Reader] Version::read(reader : R) -> Version raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  Version::read_with_limit(reader)
-}
-
-///|
-pub fn[R : @protobuf.Reader] Version::read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
+pub impl @protobuf.Read for Version with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.Reader],
 ) -> Version raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
   let msg = Version::default()
   try {
     for {
@@ -83,14 +67,13 @@ pub fn[R : @protobuf.Reader] Version::read_with_limit(
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
 
 ///|
-pub fn[W : @protobuf.Writer] Version::write(
-  self : Self,
-  writer : W,
+pub impl @protobuf.Write for Version with write(
+  self : Version,
+  writer : &@protobuf.Writer,
 ) -> Unit raise {
   match self.major {
     Some(v) => {
@@ -166,50 +149,9 @@ pub impl @json.FromJson for Version with from_json(
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] Version::async_read(
-  reader : R,
-) -> Version raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  Version::async_read_with_limit(reader)
-}
-
-///|
-pub async fn[R : @protobuf.AsyncReader] Version::async_read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
-) -> Version raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
-  let msg = Version::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-        (1, _) => msg.major = reader |> @protobuf.async_read_int32() |> Some
-        (2, _) => msg.minor = reader |> @protobuf.async_read_int32() |> Some
-        (3, _) => msg.patch = reader |> @protobuf.async_read_int32() |> Some
-        (4, _) => msg.suffix = reader |> @protobuf.async_read_string() |> Some
-        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-
-///|
-pub async fn[W : @protobuf.AsyncWriter] Version::async_write(
-  self : Self,
-  writer : W,
+pub impl @protobuf.AsyncWrite for Version with write(
+  self : Version,
+  writer : &@protobuf.AsyncWriter,
 ) -> Unit raise {
   match self.major {
     Some(v) => {
@@ -239,6 +181,28 @@ pub async fn[W : @protobuf.AsyncWriter] Version::async_write(
     }
     None => ()
   }
+}
+
+///|
+pub impl @protobuf.AsyncRead for Version with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.AsyncReader],
+) -> Version raise {
+  let msg = Version::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+        (1, _) => msg.major = reader |> @protobuf.async_read_int32() |> Some
+        (2, _) => msg.minor = reader |> @protobuf.async_read_int32() |> Some
+        (3, _) => msg.patch = reader |> @protobuf.async_read_int32() |> Some
+        (4, _) => msg.suffix = reader |> @protobuf.async_read_string() |> Some
+        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 
 ///|
@@ -318,27 +282,9 @@ pub fn CodeGeneratorRequest::new(
 }
 
 ///|
-pub fn[R : @protobuf.Reader] CodeGeneratorRequest::read(
-  reader : R,
+pub impl @protobuf.Read for CodeGeneratorRequest with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.Reader],
 ) -> CodeGeneratorRequest raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  CodeGeneratorRequest::read_with_limit(reader)
-}
-
-///|
-pub fn[R : @protobuf.Reader] CodeGeneratorRequest::read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
-) -> CodeGeneratorRequest raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
   let msg = CodeGeneratorRequest::default()
   try {
     for {
@@ -347,41 +293,14 @@ pub fn[R : @protobuf.Reader] CodeGeneratorRequest::read_with_limit(
         (2, _) => msg.parameter = reader |> @protobuf.read_string() |> Some
         (15, _) =>
           msg.proto_file.push(
-            {
-              let len = reader |> @protobuf.read_int32()
-              if len == 0 {
-                @protobuf1.FileDescriptorProto::default()
-              } else {
-                @protobuf1.FileDescriptorProto::read_with_limit(
-                  reader,
-                  limit=len,
-                )
-              }
-            },
+            (reader |> @protobuf.read_message() : @protobuf1.FileDescriptorProto),
           )
         (17, _) =>
           msg.source_file_descriptors.push(
-            {
-              let len = reader |> @protobuf.read_int32()
-              if len == 0 {
-                @protobuf1.FileDescriptorProto::default()
-              } else {
-                @protobuf1.FileDescriptorProto::read_with_limit(
-                  reader,
-                  limit=len,
-                )
-              }
-            },
+            (reader |> @protobuf.read_message() : @protobuf1.FileDescriptorProto),
           )
         (3, _) =>
-          msg.compiler_version = {
-              let len = reader |> @protobuf.read_int32()
-              if len == 0 {
-                Version::default()
-              } else {
-                Version::read_with_limit(reader, limit=len)
-              }
-            }
+          msg.compiler_version = (reader |> @protobuf.read_message() : Version)
             |> Some
         (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
@@ -390,14 +309,13 @@ pub fn[R : @protobuf.Reader] CodeGeneratorRequest::read_with_limit(
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
 
 ///|
-pub fn[W : @protobuf.Writer] CodeGeneratorRequest::write(
-  self : Self,
-  writer : W,
+pub impl @protobuf.Write for CodeGeneratorRequest with write(
+  self : CodeGeneratorRequest,
+  writer : &@protobuf.Writer,
 ) -> Unit raise {
   for item in self.file_to_generate {
     writer |> @protobuf.write_varint(10UL)
@@ -413,18 +331,18 @@ pub fn[W : @protobuf.Writer] CodeGeneratorRequest::write(
   for item in self.proto_file {
     writer |> @protobuf.write_varint(122UL)
     writer |> @protobuf.write_uint32(@protobuf.size_of(item))
-    item.write(writer)
+    @protobuf.Write::write(item, writer)
   }
   for item in self.source_file_descriptors {
     writer |> @protobuf.write_varint(138UL)
     writer |> @protobuf.write_uint32(@protobuf.size_of(item))
-    item.write(writer)
+    @protobuf.Write::write(item, writer)
   }
   match self.compiler_version {
     Some(v) => {
       writer |> @protobuf.write_varint(26UL)
       writer |> @protobuf.write_uint32(@protobuf.size_of(v))
-      v.write(writer)
+      @protobuf.Write::write(v, writer)
     }
     None => ()
   }
@@ -486,88 +404,9 @@ pub impl @json.FromJson for CodeGeneratorRequest with from_json(
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] CodeGeneratorRequest::async_read(
-  reader : R,
-) -> CodeGeneratorRequest raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  CodeGeneratorRequest::async_read_with_limit(reader)
-}
-
-///|
-pub async fn[R : @protobuf.AsyncReader] CodeGeneratorRequest::async_read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
-) -> CodeGeneratorRequest raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
-  let msg = CodeGeneratorRequest::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-        (1, _) =>
-          msg.file_to_generate.push(reader |> @protobuf.async_read_string())
-        (2, _) =>
-          msg.parameter = reader |> @protobuf.async_read_string() |> Some
-        (15, _) =>
-          msg.proto_file.push(
-            {
-              let len = reader |> @protobuf.async_read_int32()
-              if len == 0 {
-                @protobuf1.FileDescriptorProto::default()
-              } else {
-                @protobuf1.FileDescriptorProto::async_read_with_limit(
-                  reader,
-                  limit=len,
-                )
-              }
-            },
-          )
-        (17, _) =>
-          msg.source_file_descriptors.push(
-            {
-              let len = reader |> @protobuf.async_read_int32()
-              if len == 0 {
-                @protobuf1.FileDescriptorProto::default()
-              } else {
-                @protobuf1.FileDescriptorProto::async_read_with_limit(
-                  reader,
-                  limit=len,
-                )
-              }
-            },
-          )
-        (3, _) =>
-          msg.compiler_version = {
-              let len = reader |> @protobuf.async_read_int32()
-              if len == 0 {
-                Version::default()
-              } else {
-                Version::async_read_with_limit(reader, limit=len)
-              }
-            }
-            |> Some
-        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-
-///|
-pub async fn[W : @protobuf.AsyncWriter] CodeGeneratorRequest::async_write(
-  self : Self,
-  writer : W,
+pub impl @protobuf.AsyncWrite for CodeGeneratorRequest with write(
+  self : CodeGeneratorRequest,
+  writer : &@protobuf.AsyncWriter,
 ) -> Unit raise {
   for item in self.file_to_generate {
     writer |> @protobuf.async_write_varint(10UL)
@@ -583,21 +422,59 @@ pub async fn[W : @protobuf.AsyncWriter] CodeGeneratorRequest::async_write(
   for item in self.proto_file {
     writer |> @protobuf.async_write_varint(122UL)
     writer |> @protobuf.async_write_uint32(@protobuf.size_of(item))
-    item.async_write(writer)
+    @protobuf.AsyncWrite::write(item, writer)
   }
   for item in self.source_file_descriptors {
     writer |> @protobuf.async_write_varint(138UL)
     writer |> @protobuf.async_write_uint32(@protobuf.size_of(item))
-    item.async_write(writer)
+    @protobuf.AsyncWrite::write(item, writer)
   }
   match self.compiler_version {
     Some(v) => {
       writer |> @protobuf.async_write_varint(26UL)
       writer |> @protobuf.async_write_uint32(@protobuf.size_of(v))
-      v.async_write(writer)
+      @protobuf.AsyncWrite::write(v, writer)
     }
     None => ()
   }
+}
+
+///|
+pub impl @protobuf.AsyncRead for CodeGeneratorRequest with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.AsyncReader],
+) -> CodeGeneratorRequest raise {
+  let msg = CodeGeneratorRequest::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+        (1, _) =>
+          msg.file_to_generate.push(reader |> @protobuf.async_read_string())
+        (2, _) =>
+          msg.parameter = reader |> @protobuf.async_read_string() |> Some
+        (15, _) =>
+          msg.proto_file.push(
+            (
+              reader |> @protobuf.async_read_message() :
+              @protobuf1.FileDescriptorProto),
+          )
+        (17, _) =>
+          msg.source_file_descriptors.push(
+            (
+              reader |> @protobuf.async_read_message() :
+              @protobuf1.FileDescriptorProto),
+          )
+        (3, _) =>
+          msg.compiler_version = (
+              reader |> @protobuf.async_read_message() : Version)
+            |> Some
+        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 
 ///|
@@ -752,27 +629,9 @@ pub fn CodeGeneratorResponse_File::new(
 }
 
 ///|
-pub fn[R : @protobuf.Reader] CodeGeneratorResponse_File::read(
-  reader : R,
+pub impl @protobuf.Read for CodeGeneratorResponse_File with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.Reader],
 ) -> CodeGeneratorResponse_File raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  CodeGeneratorResponse_File::read_with_limit(reader)
-}
-
-///|
-pub fn[R : @protobuf.Reader] CodeGeneratorResponse_File::read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
-) -> CodeGeneratorResponse_File raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
   let msg = CodeGeneratorResponse_File::default()
   try {
     for {
@@ -782,14 +641,8 @@ pub fn[R : @protobuf.Reader] CodeGeneratorResponse_File::read_with_limit(
           msg.insertion_point = reader |> @protobuf.read_string() |> Some
         (15, _) => msg.content = reader |> @protobuf.read_string() |> Some
         (16, _) =>
-          msg.generated_code_info = {
-              let len = reader |> @protobuf.read_int32()
-              if len == 0 {
-                @protobuf1.GeneratedCodeInfo::default()
-              } else {
-                @protobuf1.GeneratedCodeInfo::read_with_limit(reader, limit=len)
-              }
-            }
+          msg.generated_code_info = (
+              reader |> @protobuf.read_message() : @protobuf1.GeneratedCodeInfo)
             |> Some
         (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
@@ -798,14 +651,13 @@ pub fn[R : @protobuf.Reader] CodeGeneratorResponse_File::read_with_limit(
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
 
 ///|
-pub fn[W : @protobuf.Writer] CodeGeneratorResponse_File::write(
-  self : Self,
-  writer : W,
+pub impl @protobuf.Write for CodeGeneratorResponse_File with write(
+  self : CodeGeneratorResponse_File,
+  writer : &@protobuf.Writer,
 ) -> Unit raise {
   match self.name {
     Some(v) => {
@@ -832,7 +684,7 @@ pub fn[W : @protobuf.Writer] CodeGeneratorResponse_File::write(
     Some(v) => {
       writer |> @protobuf.write_varint(130UL)
       writer |> @protobuf.write_uint32(@protobuf.size_of(v))
-      v.write(writer)
+      @protobuf.Write::write(v, writer)
     }
     None => ()
   }
@@ -887,63 +739,9 @@ pub impl @json.FromJson for CodeGeneratorResponse_File with from_json(
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] CodeGeneratorResponse_File::async_read(
-  reader : R,
-) -> CodeGeneratorResponse_File raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  CodeGeneratorResponse_File::async_read_with_limit(reader)
-}
-
-///|
-pub async fn[R : @protobuf.AsyncReader] CodeGeneratorResponse_File::async_read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
-) -> CodeGeneratorResponse_File raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
-  let msg = CodeGeneratorResponse_File::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-        (1, _) => msg.name = reader |> @protobuf.async_read_string() |> Some
-        (2, _) =>
-          msg.insertion_point = reader |> @protobuf.async_read_string() |> Some
-        (15, _) => msg.content = reader |> @protobuf.async_read_string() |> Some
-        (16, _) =>
-          msg.generated_code_info = {
-              let len = reader |> @protobuf.async_read_int32()
-              if len == 0 {
-                @protobuf1.GeneratedCodeInfo::default()
-              } else {
-                @protobuf1.GeneratedCodeInfo::async_read_with_limit(
-                  reader,
-                  limit=len,
-                )
-              }
-            }
-            |> Some
-        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-
-///|
-pub async fn[W : @protobuf.AsyncWriter] CodeGeneratorResponse_File::async_write(
-  self : Self,
-  writer : W,
+pub impl @protobuf.AsyncWrite for CodeGeneratorResponse_File with write(
+  self : CodeGeneratorResponse_File,
+  writer : &@protobuf.AsyncWriter,
 ) -> Unit raise {
   match self.name {
     Some(v) => {
@@ -970,10 +768,37 @@ pub async fn[W : @protobuf.AsyncWriter] CodeGeneratorResponse_File::async_write(
     Some(v) => {
       writer |> @protobuf.async_write_varint(130UL)
       writer |> @protobuf.async_write_uint32(@protobuf.size_of(v))
-      v.async_write(writer)
+      @protobuf.AsyncWrite::write(v, writer)
     }
     None => ()
   }
+}
+
+///|
+pub impl @protobuf.AsyncRead for CodeGeneratorResponse_File with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.AsyncReader],
+) -> CodeGeneratorResponse_File raise {
+  let msg = CodeGeneratorResponse_File::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+        (1, _) => msg.name = reader |> @protobuf.async_read_string() |> Some
+        (2, _) =>
+          msg.insertion_point = reader |> @protobuf.async_read_string() |> Some
+        (15, _) => msg.content = reader |> @protobuf.async_read_string() |> Some
+        (16, _) =>
+          msg.generated_code_info = (
+              reader |> @protobuf.async_read_message() :
+              @protobuf1.GeneratedCodeInfo)
+            |> Some
+        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 
 ///|
@@ -1046,27 +871,9 @@ pub fn CodeGeneratorResponse::new(
 }
 
 ///|
-pub fn[R : @protobuf.Reader] CodeGeneratorResponse::read(
-  reader : R,
+pub impl @protobuf.Read for CodeGeneratorResponse with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.Reader],
 ) -> CodeGeneratorResponse raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  CodeGeneratorResponse::read_with_limit(reader)
-}
-
-///|
-pub fn[R : @protobuf.Reader] CodeGeneratorResponse::read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
-) -> CodeGeneratorResponse raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
   let msg = CodeGeneratorResponse::default()
   try {
     for {
@@ -1078,14 +885,7 @@ pub fn[R : @protobuf.Reader] CodeGeneratorResponse::read_with_limit(
         (4, _) => msg.maximum_edition = reader |> @protobuf.read_int32() |> Some
         (15, _) =>
           msg.file.push(
-            {
-              let len = reader |> @protobuf.read_int32()
-              if len == 0 {
-                CodeGeneratorResponse_File::default()
-              } else {
-                CodeGeneratorResponse_File::read_with_limit(reader, limit=len)
-              }
-            },
+            (reader |> @protobuf.read_message() : CodeGeneratorResponse_File),
           )
         (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
@@ -1094,14 +894,13 @@ pub fn[R : @protobuf.Reader] CodeGeneratorResponse::read_with_limit(
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
 
 ///|
-pub fn[W : @protobuf.Writer] CodeGeneratorResponse::write(
-  self : Self,
-  writer : W,
+pub impl @protobuf.Write for CodeGeneratorResponse with write(
+  self : CodeGeneratorResponse,
+  writer : &@protobuf.Writer,
 ) -> Unit raise {
   match self.error {
     Some(v) => {
@@ -1134,7 +933,7 @@ pub fn[W : @protobuf.Writer] CodeGeneratorResponse::write(
   for item in self.file {
     writer |> @protobuf.write_varint(122UL)
     writer |> @protobuf.write_uint32(@protobuf.size_of(item))
-    item.write(writer)
+    @protobuf.Write::write(item, writer)
   }
 }
 
@@ -1192,69 +991,9 @@ pub impl @json.FromJson for CodeGeneratorResponse with from_json(
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] CodeGeneratorResponse::async_read(
-  reader : R,
-) -> CodeGeneratorResponse raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  CodeGeneratorResponse::async_read_with_limit(reader)
-}
-
-///|
-pub async fn[R : @protobuf.AsyncReader] CodeGeneratorResponse::async_read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
-) -> CodeGeneratorResponse raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
-  let msg = CodeGeneratorResponse::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-        (1, _) => msg.error = reader |> @protobuf.async_read_string() |> Some
-        (2, _) =>
-          msg.supported_features = reader
-            |> @protobuf.async_read_uint64()
-            |> Some
-        (3, _) =>
-          msg.minimum_edition = reader |> @protobuf.async_read_int32() |> Some
-        (4, _) =>
-          msg.maximum_edition = reader |> @protobuf.async_read_int32() |> Some
-        (15, _) =>
-          msg.file.push(
-            {
-              let len = reader |> @protobuf.async_read_int32()
-              if len == 0 {
-                CodeGeneratorResponse_File::default()
-              } else {
-                CodeGeneratorResponse_File::async_read_with_limit(
-                  reader,
-                  limit=len,
-                )
-              }
-            },
-          )
-        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-
-///|
-pub async fn[W : @protobuf.AsyncWriter] CodeGeneratorResponse::async_write(
-  self : Self,
-  writer : W,
+pub impl @protobuf.AsyncWrite for CodeGeneratorResponse with write(
+  self : CodeGeneratorResponse,
+  writer : &@protobuf.AsyncWriter,
 ) -> Unit raise {
   match self.error {
     Some(v) => {
@@ -1287,6 +1026,39 @@ pub async fn[W : @protobuf.AsyncWriter] CodeGeneratorResponse::async_write(
   for item in self.file {
     writer |> @protobuf.async_write_varint(122UL)
     writer |> @protobuf.async_write_uint32(@protobuf.size_of(item))
-    item.async_write(writer)
+    @protobuf.AsyncWrite::write(item, writer)
   }
+}
+
+///|
+pub impl @protobuf.AsyncRead for CodeGeneratorResponse with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.AsyncReader],
+) -> CodeGeneratorResponse raise {
+  let msg = CodeGeneratorResponse::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+        (1, _) => msg.error = reader |> @protobuf.async_read_string() |> Some
+        (2, _) =>
+          msg.supported_features = reader
+            |> @protobuf.async_read_uint64()
+            |> Some
+        (3, _) =>
+          msg.minimum_edition = reader |> @protobuf.async_read_int32() |> Some
+        (4, _) =>
+          msg.maximum_edition = reader |> @protobuf.async_read_int32() |> Some
+        (15, _) =>
+          msg.file.push(
+            (
+              reader |> @protobuf.async_read_message() :
+              CodeGeneratorResponse_File),
+          )
+        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }

@@ -79,25 +79,9 @@ pub fn BarMessage::new(b_int32 : Int) -> BarMessage {
 }
 
 ///|
-pub fn[R : @protobuf.Reader] BarMessage::read(reader : R) -> BarMessage raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  BarMessage::read_with_limit(reader)
-}
-
-///|
-pub fn[R : @protobuf.Reader] BarMessage::read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
+pub impl @protobuf.Read for BarMessage with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.Reader],
 ) -> BarMessage raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
   let msg = BarMessage::default()
   try {
     for {
@@ -110,14 +94,13 @@ pub fn[R : @protobuf.Reader] BarMessage::read_with_limit(
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
 
 ///|
-pub fn[W : @protobuf.Writer] BarMessage::write(
-  self : Self,
-  writer : W,
+pub impl @protobuf.Write for BarMessage with write(
+  self : BarMessage,
+  writer : &@protobuf.Writer,
 ) -> Unit raise {
   writer |> @protobuf.write_varint(8UL)
   writer |> @protobuf.write_int32(self.b_int32)
@@ -151,27 +134,18 @@ pub impl @json.FromJson for BarMessage with from_json(
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] BarMessage::async_read(
-  reader : R,
-) -> BarMessage raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  BarMessage::async_read_with_limit(reader)
+pub impl @protobuf.AsyncWrite for BarMessage with write(
+  self : BarMessage,
+  writer : &@protobuf.AsyncWriter,
+) -> Unit raise {
+  writer |> @protobuf.async_write_varint(8UL)
+  writer |> @protobuf.async_write_int32(self.b_int32)
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] BarMessage::async_read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
+pub impl @protobuf.AsyncRead for BarMessage with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.AsyncReader],
 ) -> BarMessage raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
   let msg = BarMessage::default()
   try {
     for {
@@ -184,17 +158,7 @@ pub async fn[R : @protobuf.AsyncReader] BarMessage::async_read_with_limit(
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
-}
-
-///|
-pub async fn[W : @protobuf.AsyncWriter] BarMessage::async_write(
-  self : Self,
-  writer : W,
-) -> Unit raise {
-  writer |> @protobuf.async_write_varint(8UL)
-  writer |> @protobuf.async_write_int32(self.b_int32)
 }
 
 ///|
@@ -229,27 +193,9 @@ pub fn FooMessage_FMapEntry::new(
 }
 
 ///|
-pub fn[R : @protobuf.Reader] FooMessage_FMapEntry::read(
-  reader : R,
+pub impl @protobuf.Read for FooMessage_FMapEntry with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.Reader],
 ) -> FooMessage_FMapEntry raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FooMessage_FMapEntry::read_with_limit(reader)
-}
-
-///|
-pub fn[R : @protobuf.Reader] FooMessage_FMapEntry::read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
-) -> FooMessage_FMapEntry raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
   let msg = FooMessage_FMapEntry::default()
   try {
     for {
@@ -263,14 +209,13 @@ pub fn[R : @protobuf.Reader] FooMessage_FMapEntry::read_with_limit(
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
 
 ///|
-pub fn[W : @protobuf.Writer] FooMessage_FMapEntry::write(
-  self : Self,
-  writer : W,
+pub impl @protobuf.Write for FooMessage_FMapEntry with write(
+  self : FooMessage_FMapEntry,
+  writer : &@protobuf.Writer,
 ) -> Unit raise {
   writer |> @protobuf.write_varint(10UL)
   writer |> @protobuf.write_string(self.key)
@@ -312,27 +257,20 @@ pub impl @json.FromJson for FooMessage_FMapEntry with from_json(
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] FooMessage_FMapEntry::async_read(
-  reader : R,
-) -> FooMessage_FMapEntry raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FooMessage_FMapEntry::async_read_with_limit(reader)
+pub impl @protobuf.AsyncWrite for FooMessage_FMapEntry with write(
+  self : FooMessage_FMapEntry,
+  writer : &@protobuf.AsyncWriter,
+) -> Unit raise {
+  writer |> @protobuf.async_write_varint(10UL)
+  writer |> @protobuf.async_write_string(self.key)
+  writer |> @protobuf.async_write_varint(16UL)
+  writer |> @protobuf.async_write_int32(self.value)
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] FooMessage_FMapEntry::async_read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
+pub impl @protobuf.AsyncRead for FooMessage_FMapEntry with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.AsyncReader],
 ) -> FooMessage_FMapEntry raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
   let msg = FooMessage_FMapEntry::default()
   try {
     for {
@@ -346,19 +284,7 @@ pub async fn[R : @protobuf.AsyncReader] FooMessage_FMapEntry::async_read_with_li
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
-}
-
-///|
-pub async fn[W : @protobuf.AsyncWriter] FooMessage_FMapEntry::async_write(
-  self : Self,
-  writer : W,
-) -> Unit raise {
-  writer |> @protobuf.async_write_varint(10UL)
-  writer |> @protobuf.async_write_string(self.key)
-  writer |> @protobuf.async_write_varint(16UL)
-  writer |> @protobuf.async_write_int32(self.value)
 }
 
 ///|
@@ -646,25 +572,9 @@ pub fn FooMessage::new(
 }
 
 ///|
-pub fn[R : @protobuf.Reader] FooMessage::read(reader : R) -> FooMessage raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FooMessage::read_with_limit(reader)
-}
-
-///|
-pub fn[R : @protobuf.Reader] FooMessage::read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
+pub impl @protobuf.Read for FooMessage with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.Reader],
 ) -> FooMessage raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
   let msg = FooMessage::default()
   try {
     for {
@@ -687,14 +597,7 @@ pub fn[R : @protobuf.Reader] FooMessage::read_with_limit(
         (15, _) => msg.f_bytes = reader |> @protobuf.read_bytes()
         (16, _) => msg.f_string = reader |> @protobuf.read_string()
         (18, _) =>
-          msg.f_bar_message = {
-            let len = reader |> @protobuf.read_int32()
-            if len == 0 {
-              BarMessage::default()
-            } else {
-              BarMessage::read_with_limit(reader, limit=len)
-            }
-          }
+          msg.f_bar_message = (reader |> @protobuf.read_message() : BarMessage)
         (19, _) =>
           msg.f_repeated_int32.push_iter(
             (reader |> @protobuf.read_packed(@protobuf.read_int32, None)).iter(),
@@ -707,50 +610,22 @@ pub fn[R : @protobuf.Reader] FooMessage::read_with_limit(
           msg.f_repeated_packed_float.push_iter(
             (reader |> @protobuf.read_packed(@protobuf.read_float, Some(4))).iter(),
           )
-        (23, _) =>
-          msg.f_baz = {
-            let len = reader |> @protobuf.read_int32()
-            if len == 0 {
-              BazMessage::default()
-            } else {
-              BazMessage::read_with_limit(reader, limit=len)
-            }
-          }
+        (23, _) => msg.f_baz = (reader |> @protobuf.read_message() : BazMessage)
         (24, _) =>
-          msg.f_nested = {
-            let len = reader |> @protobuf.read_int32()
-            if len == 0 {
-              BazMessage_Nested::default()
-            } else {
-              BazMessage_Nested::read_with_limit(reader, limit=len)
-            }
-          }
+          msg.f_nested = (reader |> @protobuf.read_message() : BazMessage_Nested)
         (25, _) =>
           msg.f_nested_enum = reader
             |> @protobuf.read_enum()
             |> BazMessage_Nested_NestedEnum::from_enum
         (26, _) => {
-          let { key, value } = {
-            let len = reader |> @protobuf.read_int32()
-            if len == 0 {
-              FooMessage_FMapEntry::default()
-            } else {
-              FooMessage_FMapEntry::read_with_limit(reader, limit=len)
-            }
-          }
+          let { key, value } = (
+            reader |> @protobuf.read_message() : FooMessage_FMapEntry)
           msg.f_map[key] = value
         }
         (30, _) => msg.f_repeated_string.push(reader |> @protobuf.read_string())
         (31, _) =>
           msg.f_repeated_baz_message.push(
-            {
-              let len = reader |> @protobuf.read_int32()
-              if len == 0 {
-                BazMessage::default()
-              } else {
-                BazMessage::read_with_limit(reader, limit=len)
-              }
-            },
+            (reader |> @protobuf.read_message() : BazMessage),
           )
         (32, _) =>
           msg.f_optional_string = reader |> @protobuf.read_string() |> Some
@@ -773,14 +648,13 @@ pub fn[R : @protobuf.Reader] FooMessage::read_with_limit(
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
 
 ///|
-pub fn[W : @protobuf.Writer] FooMessage::write(
-  self : Self,
-  writer : W,
+pub impl @protobuf.Write for FooMessage with write(
+  self : FooMessage,
+  writer : &@protobuf.Writer,
 ) -> Unit raise {
   writer |> @protobuf.write_varint(8UL)
   writer |> @protobuf.write_int32(self.f_int32)
@@ -816,7 +690,7 @@ pub fn[W : @protobuf.Writer] FooMessage::write(
   writer |> @protobuf.write_string(self.f_string)
   writer |> @protobuf.write_varint(146UL)
   writer |> @protobuf.write_uint32(@protobuf.size_of(self.f_bar_message))
-  self.f_bar_message.write(writer)
+  @protobuf.Write::write(self.f_bar_message, writer)
   writer |> @protobuf.write_varint(154UL)
   let size = self.f_repeated_int32
     .iter()
@@ -843,10 +717,10 @@ pub fn[W : @protobuf.Writer] FooMessage::write(
   }
   writer |> @protobuf.write_varint(186UL)
   writer |> @protobuf.write_uint32(@protobuf.size_of(self.f_baz))
-  self.f_baz.write(writer)
+  @protobuf.Write::write(self.f_baz, writer)
   writer |> @protobuf.write_varint(194UL)
   writer |> @protobuf.write_uint32(@protobuf.size_of(self.f_nested))
-  self.f_nested.write(writer)
+  @protobuf.Write::write(self.f_nested, writer)
   writer |> @protobuf.write_varint(200UL)
   writer |> @protobuf.write_enum(self.f_nested_enum.to_enum())
   let keys = self.f_map.keys().collect()
@@ -873,7 +747,7 @@ pub fn[W : @protobuf.Writer] FooMessage::write(
   for item in self.f_repeated_baz_message {
     writer |> @protobuf.write_varint(250UL)
     writer |> @protobuf.write_uint32(@protobuf.size_of(item))
-    item.write(writer)
+    @protobuf.Write::write(item, writer)
   }
   match self.f_optional_string {
     Some(v) => {
@@ -1050,153 +924,9 @@ pub impl @json.FromJson for FooMessage with from_json(
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] FooMessage::async_read(
-  reader : R,
-) -> FooMessage raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FooMessage::async_read_with_limit(reader)
-}
-
-///|
-pub async fn[R : @protobuf.AsyncReader] FooMessage::async_read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
-) -> FooMessage raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
-  let msg = FooMessage::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-        (1, _) => msg.f_int32 = reader |> @protobuf.async_read_int32()
-        (2, _) => msg.f_int64 = reader |> @protobuf.async_read_int64()
-        (3, _) => msg.f_uint32 = reader |> @protobuf.async_read_uint32()
-        (4, _) => msg.f_uint64 = reader |> @protobuf.async_read_uint64()
-        (5, _) =>
-          msg.f_sint32 = (reader |> @protobuf.async_read_sint32()).inner()
-        (6, _) =>
-          msg.f_sint64 = (reader |> @protobuf.async_read_sint64()).inner()
-        (7, _) => msg.f_bool = reader |> @protobuf.async_read_bool()
-        (8, _) =>
-          msg.f_foo_enum = reader
-            |> @protobuf.async_read_enum()
-            |> FooEnum::from_enum
-        (9, _) => msg.f_fixed64 = reader |> @protobuf.async_read_fixed64()
-        (10, _) => msg.f_sfixed64 = reader |> @protobuf.async_read_sfixed64()
-        (11, _) => msg.f_fixed32 = reader |> @protobuf.async_read_fixed32()
-        (12, _) => msg.f_sfixed32 = reader |> @protobuf.async_read_sfixed32()
-        (13, _) => msg.f_double = reader |> @protobuf.async_read_double()
-        (14, _) => msg.f_float = reader |> @protobuf.async_read_float()
-        (15, _) => msg.f_bytes = reader |> @protobuf.async_read_bytes()
-        (16, _) => msg.f_string = reader |> @protobuf.async_read_string()
-        (18, _) =>
-          msg.f_bar_message = {
-            let len = reader |> @protobuf.async_read_int32()
-            if len == 0 {
-              BarMessage::default()
-            } else {
-              BarMessage::async_read_with_limit(reader, limit=len)
-            }
-          }
-        (19, _) =>
-          msg.f_repeated_int32.push_iter(
-            (reader
-            |> @protobuf.async_read_packed(@protobuf.async_read_int32, None)).iter(),
-          )
-        (20, _) =>
-          msg.f_repeated_packed_int32.push_iter(
-            (reader
-            |> @protobuf.async_read_packed(@protobuf.async_read_int32, None)).iter(),
-          )
-        (21, _) =>
-          msg.f_repeated_packed_float.push_iter(
-            (reader
-            |> @protobuf.async_read_packed(@protobuf.async_read_float, Some(4))).iter(),
-          )
-        (23, _) =>
-          msg.f_baz = {
-            let len = reader |> @protobuf.async_read_int32()
-            if len == 0 {
-              BazMessage::default()
-            } else {
-              BazMessage::async_read_with_limit(reader, limit=len)
-            }
-          }
-        (24, _) =>
-          msg.f_nested = {
-            let len = reader |> @protobuf.async_read_int32()
-            if len == 0 {
-              BazMessage_Nested::default()
-            } else {
-              BazMessage_Nested::async_read_with_limit(reader, limit=len)
-            }
-          }
-        (25, _) =>
-          msg.f_nested_enum = reader
-            |> @protobuf.async_read_enum()
-            |> BazMessage_Nested_NestedEnum::from_enum
-        (26, _) => {
-          let { key, value } = {
-            let len = reader |> @protobuf.async_read_int32()
-            if len == 0 {
-              FooMessage_FMapEntry::default()
-            } else {
-              FooMessage_FMapEntry::async_read_with_limit(reader, limit=len)
-            }
-          }
-          msg.f_map[key] = value
-        }
-        (30, _) =>
-          msg.f_repeated_string.push(reader |> @protobuf.async_read_string())
-        (31, _) =>
-          msg.f_repeated_baz_message.push(
-            {
-              let len = reader |> @protobuf.async_read_int32()
-              if len == 0 {
-                BazMessage::default()
-              } else {
-                BazMessage::async_read_with_limit(reader, limit=len)
-              }
-            },
-          )
-        (32, _) =>
-          msg.f_optional_string = reader
-            |> @protobuf.async_read_string()
-            |> Some
-        (27, _) =>
-          msg.test_oneof = reader
-            |> @protobuf.async_read_int32()
-            |> FooMessage_TestOneof::F1
-        (28, _) =>
-          msg.test_oneof = reader
-            |> @protobuf.async_read_bool()
-            |> FooMessage_TestOneof::F2
-        (29, _) =>
-          msg.test_oneof = reader
-            |> @protobuf.async_read_string()
-            |> FooMessage_TestOneof::F3
-        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-
-///|
-pub async fn[W : @protobuf.AsyncWriter] FooMessage::async_write(
-  self : Self,
-  writer : W,
+pub impl @protobuf.AsyncWrite for FooMessage with write(
+  self : FooMessage,
+  writer : &@protobuf.AsyncWriter,
 ) -> Unit raise {
   writer |> @protobuf.async_write_varint(8UL)
   writer |> @protobuf.async_write_int32(self.f_int32)
@@ -1232,7 +962,7 @@ pub async fn[W : @protobuf.AsyncWriter] FooMessage::async_write(
   writer |> @protobuf.async_write_string(self.f_string)
   writer |> @protobuf.async_write_varint(146UL)
   writer |> @protobuf.async_write_uint32(@protobuf.size_of(self.f_bar_message))
-  self.f_bar_message.async_write(writer)
+  @protobuf.AsyncWrite::write(self.f_bar_message, writer)
   writer |> @protobuf.async_write_varint(154UL)
   let size = self.f_repeated_int32
     .iter()
@@ -1259,10 +989,10 @@ pub async fn[W : @protobuf.AsyncWriter] FooMessage::async_write(
   }
   writer |> @protobuf.async_write_varint(186UL)
   writer |> @protobuf.async_write_uint32(@protobuf.size_of(self.f_baz))
-  self.f_baz.async_write(writer)
+  @protobuf.AsyncWrite::write(self.f_baz, writer)
   writer |> @protobuf.async_write_varint(194UL)
   writer |> @protobuf.async_write_uint32(@protobuf.size_of(self.f_nested))
-  self.f_nested.async_write(writer)
+  @protobuf.AsyncWrite::write(self.f_nested, writer)
   writer |> @protobuf.async_write_varint(200UL)
   writer |> @protobuf.async_write_enum(self.f_nested_enum.to_enum())
   let keys = self.f_map.keys().collect()
@@ -1289,7 +1019,7 @@ pub async fn[W : @protobuf.AsyncWriter] FooMessage::async_write(
   for item in self.f_repeated_baz_message {
     writer |> @protobuf.async_write_varint(250UL)
     writer |> @protobuf.async_write_uint32(@protobuf.size_of(item))
-    item.async_write(writer)
+    @protobuf.AsyncWrite::write(item, writer)
   }
   match self.f_optional_string {
     Some(v) => {
@@ -1313,6 +1043,99 @@ pub async fn[W : @protobuf.AsyncWriter] FooMessage::async_write(
     }
     FooMessage_TestOneof::NotSet => ()
   }
+}
+
+///|
+pub impl @protobuf.AsyncRead for FooMessage with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.AsyncReader],
+) -> FooMessage raise {
+  let msg = FooMessage::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+        (1, _) => msg.f_int32 = reader |> @protobuf.async_read_int32()
+        (2, _) => msg.f_int64 = reader |> @protobuf.async_read_int64()
+        (3, _) => msg.f_uint32 = reader |> @protobuf.async_read_uint32()
+        (4, _) => msg.f_uint64 = reader |> @protobuf.async_read_uint64()
+        (5, _) =>
+          msg.f_sint32 = (reader |> @protobuf.async_read_sint32()).inner()
+        (6, _) =>
+          msg.f_sint64 = (reader |> @protobuf.async_read_sint64()).inner()
+        (7, _) => msg.f_bool = reader |> @protobuf.async_read_bool()
+        (8, _) =>
+          msg.f_foo_enum = reader
+            |> @protobuf.async_read_enum()
+            |> FooEnum::from_enum
+        (9, _) => msg.f_fixed64 = reader |> @protobuf.async_read_fixed64()
+        (10, _) => msg.f_sfixed64 = reader |> @protobuf.async_read_sfixed64()
+        (11, _) => msg.f_fixed32 = reader |> @protobuf.async_read_fixed32()
+        (12, _) => msg.f_sfixed32 = reader |> @protobuf.async_read_sfixed32()
+        (13, _) => msg.f_double = reader |> @protobuf.async_read_double()
+        (14, _) => msg.f_float = reader |> @protobuf.async_read_float()
+        (15, _) => msg.f_bytes = reader |> @protobuf.async_read_bytes()
+        (16, _) => msg.f_string = reader |> @protobuf.async_read_string()
+        (18, _) =>
+          msg.f_bar_message = (
+            reader |> @protobuf.async_read_message() : BarMessage)
+        (19, _) =>
+          msg.f_repeated_int32.push_iter(
+            (reader
+            |> @protobuf.async_read_packed(@protobuf.async_read_int32, None)).iter(),
+          )
+        (20, _) =>
+          msg.f_repeated_packed_int32.push_iter(
+            (reader
+            |> @protobuf.async_read_packed(@protobuf.async_read_int32, None)).iter(),
+          )
+        (21, _) =>
+          msg.f_repeated_packed_float.push_iter(
+            (reader
+            |> @protobuf.async_read_packed(@protobuf.async_read_float, Some(4))).iter(),
+          )
+        (23, _) =>
+          msg.f_baz = (reader |> @protobuf.async_read_message() : BazMessage)
+        (24, _) =>
+          msg.f_nested = (
+            reader |> @protobuf.async_read_message() : BazMessage_Nested)
+        (25, _) =>
+          msg.f_nested_enum = reader
+            |> @protobuf.async_read_enum()
+            |> BazMessage_Nested_NestedEnum::from_enum
+        (26, _) => {
+          let { key, value } = (
+            reader |> @protobuf.async_read_message() : FooMessage_FMapEntry)
+          msg.f_map[key] = value
+        }
+        (30, _) =>
+          msg.f_repeated_string.push(reader |> @protobuf.async_read_string())
+        (31, _) =>
+          msg.f_repeated_baz_message.push(
+            (reader |> @protobuf.async_read_message() : BazMessage),
+          )
+        (32, _) =>
+          msg.f_optional_string = reader
+            |> @protobuf.async_read_string()
+            |> Some
+        (27, _) =>
+          msg.test_oneof = reader
+            |> @protobuf.async_read_int32()
+            |> FooMessage_TestOneof::F1
+        (28, _) =>
+          msg.test_oneof = reader
+            |> @protobuf.async_read_bool()
+            |> FooMessage_TestOneof::F2
+        (29, _) =>
+          msg.test_oneof = reader
+            |> @protobuf.async_read_string()
+            |> FooMessage_TestOneof::F3
+        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 
 ///|
@@ -1412,27 +1235,9 @@ pub fn BazMessage_Nested_NestedMessage::new(
 }
 
 ///|
-pub fn[R : @protobuf.Reader] BazMessage_Nested_NestedMessage::read(
-  reader : R,
+pub impl @protobuf.Read for BazMessage_Nested_NestedMessage with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.Reader],
 ) -> BazMessage_Nested_NestedMessage raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  BazMessage_Nested_NestedMessage::read_with_limit(reader)
-}
-
-///|
-pub fn[R : @protobuf.Reader] BazMessage_Nested_NestedMessage::read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
-) -> BazMessage_Nested_NestedMessage raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
   let msg = BazMessage_Nested_NestedMessage::default()
   try {
     for {
@@ -1445,14 +1250,13 @@ pub fn[R : @protobuf.Reader] BazMessage_Nested_NestedMessage::read_with_limit(
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
 
 ///|
-pub fn[W : @protobuf.Writer] BazMessage_Nested_NestedMessage::write(
-  self : Self,
-  writer : W,
+pub impl @protobuf.Write for BazMessage_Nested_NestedMessage with write(
+  self : BazMessage_Nested_NestedMessage,
+  writer : &@protobuf.Writer,
 ) -> Unit raise {
   writer |> @protobuf.write_varint(8UL)
   writer |> @protobuf.write_int32(self.f_nested)
@@ -1488,27 +1292,18 @@ pub impl @json.FromJson for BazMessage_Nested_NestedMessage with from_json(
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] BazMessage_Nested_NestedMessage::async_read(
-  reader : R,
-) -> BazMessage_Nested_NestedMessage raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  BazMessage_Nested_NestedMessage::async_read_with_limit(reader)
+pub impl @protobuf.AsyncWrite for BazMessage_Nested_NestedMessage with write(
+  self : BazMessage_Nested_NestedMessage,
+  writer : &@protobuf.AsyncWriter,
+) -> Unit raise {
+  writer |> @protobuf.async_write_varint(8UL)
+  writer |> @protobuf.async_write_int32(self.f_nested)
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] BazMessage_Nested_NestedMessage::async_read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
+pub impl @protobuf.AsyncRead for BazMessage_Nested_NestedMessage with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.AsyncReader],
 ) -> BazMessage_Nested_NestedMessage raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
   let msg = BazMessage_Nested_NestedMessage::default()
   try {
     for {
@@ -1521,17 +1316,7 @@ pub async fn[R : @protobuf.AsyncReader] BazMessage_Nested_NestedMessage::async_r
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
-}
-
-///|
-pub async fn[W : @protobuf.AsyncWriter] BazMessage_Nested_NestedMessage::async_write(
-  self : Self,
-  writer : W,
-) -> Unit raise {
-  writer |> @protobuf.async_write_varint(8UL)
-  writer |> @protobuf.async_write_int32(self.f_nested)
 }
 
 ///|
@@ -1563,43 +1348,16 @@ pub fn BazMessage_Nested::new(
 }
 
 ///|
-pub fn[R : @protobuf.Reader] BazMessage_Nested::read(
-  reader : R,
+pub impl @protobuf.Read for BazMessage_Nested with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.Reader],
 ) -> BazMessage_Nested raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  BazMessage_Nested::read_with_limit(reader)
-}
-
-///|
-pub fn[R : @protobuf.Reader] BazMessage_Nested::read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
-) -> BazMessage_Nested raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
   let msg = BazMessage_Nested::default()
   try {
     for {
       match (reader |> @protobuf.read_tag()) {
         (1, _) =>
-          msg.f_nested = {
-            let len = reader |> @protobuf.read_int32()
-            if len == 0 {
-              BazMessage_Nested_NestedMessage::default()
-            } else {
-              BazMessage_Nested_NestedMessage::read_with_limit(
-                reader,
-                limit=len,
-              )
-            }
-          }
+          msg.f_nested = (
+            reader |> @protobuf.read_message() : BazMessage_Nested_NestedMessage)
         (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
@@ -1607,18 +1365,17 @@ pub fn[R : @protobuf.Reader] BazMessage_Nested::read_with_limit(
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
 
 ///|
-pub fn[W : @protobuf.Writer] BazMessage_Nested::write(
-  self : Self,
-  writer : W,
+pub impl @protobuf.Write for BazMessage_Nested with write(
+  self : BazMessage_Nested,
+  writer : &@protobuf.Writer,
 ) -> Unit raise {
   writer |> @protobuf.write_varint(10UL)
   writer |> @protobuf.write_uint32(@protobuf.size_of(self.f_nested))
-  self.f_nested.write(writer)
+  @protobuf.Write::write(self.f_nested, writer)
 }
 
 ///|
@@ -1651,43 +1408,27 @@ pub impl @json.FromJson for BazMessage_Nested with from_json(
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] BazMessage_Nested::async_read(
-  reader : R,
-) -> BazMessage_Nested raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  BazMessage_Nested::async_read_with_limit(reader)
+pub impl @protobuf.AsyncWrite for BazMessage_Nested with write(
+  self : BazMessage_Nested,
+  writer : &@protobuf.AsyncWriter,
+) -> Unit raise {
+  writer |> @protobuf.async_write_varint(10UL)
+  writer |> @protobuf.async_write_uint32(@protobuf.size_of(self.f_nested))
+  @protobuf.AsyncWrite::write(self.f_nested, writer)
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] BazMessage_Nested::async_read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
+pub impl @protobuf.AsyncRead for BazMessage_Nested with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.AsyncReader],
 ) -> BazMessage_Nested raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
   let msg = BazMessage_Nested::default()
   try {
     for {
       match (reader |> @protobuf.async_read_tag()) {
         (1, _) =>
-          msg.f_nested = {
-            let len = reader |> @protobuf.async_read_int32()
-            if len == 0 {
-              BazMessage_Nested_NestedMessage::default()
-            } else {
-              BazMessage_Nested_NestedMessage::async_read_with_limit(
-                reader,
-                limit=len,
-              )
-            }
-          }
+          msg.f_nested = (
+            reader |> @protobuf.async_read_message() :
+            BazMessage_Nested_NestedMessage)
         (_, wire) => reader |> @protobuf.async_read_unknown(wire)
       }
     }
@@ -1695,18 +1436,7 @@ pub async fn[R : @protobuf.AsyncReader] BazMessage_Nested::async_read_with_limit
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
-}
-
-///|
-pub async fn[W : @protobuf.AsyncWriter] BazMessage_Nested::async_write(
-  self : Self,
-  writer : W,
-) -> Unit raise {
-  writer |> @protobuf.async_write_varint(10UL)
-  writer |> @protobuf.async_write_uint32(@protobuf.size_of(self.f_nested))
-  self.f_nested.async_write(writer)
 }
 
 ///|
@@ -1752,38 +1482,15 @@ pub fn BazMessage::new(
 }
 
 ///|
-pub fn[R : @protobuf.Reader] BazMessage::read(reader : R) -> BazMessage raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  BazMessage::read_with_limit(reader)
-}
-
-///|
-pub fn[R : @protobuf.Reader] BazMessage::read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
+pub impl @protobuf.Read for BazMessage with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.Reader],
 ) -> BazMessage raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
   let msg = BazMessage::default()
   try {
     for {
       match (reader |> @protobuf.read_tag()) {
         (1, _) =>
-          msg.nested = {
-            let len = reader |> @protobuf.read_int32()
-            if len == 0 {
-              BazMessage_Nested::default()
-            } else {
-              BazMessage_Nested::read_with_limit(reader, limit=len)
-            }
-          }
+          msg.nested = (reader |> @protobuf.read_message() : BazMessage_Nested)
         (2, _) => msg.b_int64 = reader |> @protobuf.read_int64()
         (3, _) => msg.b_string = reader |> @protobuf.read_string()
         (_, wire) => reader |> @protobuf.read_unknown(wire)
@@ -1793,18 +1500,17 @@ pub fn[R : @protobuf.Reader] BazMessage::read_with_limit(
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
 
 ///|
-pub fn[W : @protobuf.Writer] BazMessage::write(
-  self : Self,
-  writer : W,
+pub impl @protobuf.Write for BazMessage with write(
+  self : BazMessage,
+  writer : &@protobuf.Writer,
 ) -> Unit raise {
   writer |> @protobuf.write_varint(10UL)
   writer |> @protobuf.write_uint32(@protobuf.size_of(self.nested))
-  self.nested.write(writer)
+  @protobuf.Write::write(self.nested, writer)
   writer |> @protobuf.write_varint(16UL)
   writer |> @protobuf.write_int64(self.b_int64)
   writer |> @protobuf.write_varint(26UL)
@@ -1847,40 +1553,30 @@ pub impl @json.FromJson for BazMessage with from_json(
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] BazMessage::async_read(
-  reader : R,
-) -> BazMessage raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  BazMessage::async_read_with_limit(reader)
+pub impl @protobuf.AsyncWrite for BazMessage with write(
+  self : BazMessage,
+  writer : &@protobuf.AsyncWriter,
+) -> Unit raise {
+  writer |> @protobuf.async_write_varint(10UL)
+  writer |> @protobuf.async_write_uint32(@protobuf.size_of(self.nested))
+  @protobuf.AsyncWrite::write(self.nested, writer)
+  writer |> @protobuf.async_write_varint(16UL)
+  writer |> @protobuf.async_write_int64(self.b_int64)
+  writer |> @protobuf.async_write_varint(26UL)
+  writer |> @protobuf.async_write_string(self.b_string)
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] BazMessage::async_read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
+pub impl @protobuf.AsyncRead for BazMessage with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.AsyncReader],
 ) -> BazMessage raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
   let msg = BazMessage::default()
   try {
     for {
       match (reader |> @protobuf.async_read_tag()) {
         (1, _) =>
-          msg.nested = {
-            let len = reader |> @protobuf.async_read_int32()
-            if len == 0 {
-              BazMessage_Nested::default()
-            } else {
-              BazMessage_Nested::async_read_with_limit(reader, limit=len)
-            }
-          }
+          msg.nested = (
+            reader |> @protobuf.async_read_message() : BazMessage_Nested)
         (2, _) => msg.b_int64 = reader |> @protobuf.async_read_int64()
         (3, _) => msg.b_string = reader |> @protobuf.async_read_string()
         (_, wire) => reader |> @protobuf.async_read_unknown(wire)
@@ -1890,22 +1586,7 @@ pub async fn[R : @protobuf.AsyncReader] BazMessage::async_read_with_limit(
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
-}
-
-///|
-pub async fn[W : @protobuf.AsyncWriter] BazMessage::async_write(
-  self : Self,
-  writer : W,
-) -> Unit raise {
-  writer |> @protobuf.async_write_varint(10UL)
-  writer |> @protobuf.async_write_uint32(@protobuf.size_of(self.nested))
-  self.nested.async_write(writer)
-  writer |> @protobuf.async_write_varint(16UL)
-  writer |> @protobuf.async_write_int64(self.b_int64)
-  writer |> @protobuf.async_write_varint(26UL)
-  writer |> @protobuf.async_write_string(self.b_string)
 }
 
 ///|
@@ -1935,41 +1616,16 @@ pub fn RepeatedMessage::new(bar_message : Array[BarMessage]) -> RepeatedMessage 
 }
 
 ///|
-pub fn[R : @protobuf.Reader] RepeatedMessage::read(
-  reader : R,
+pub impl @protobuf.Read for RepeatedMessage with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.Reader],
 ) -> RepeatedMessage raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  RepeatedMessage::read_with_limit(reader)
-}
-
-///|
-pub fn[R : @protobuf.Reader] RepeatedMessage::read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
-) -> RepeatedMessage raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
   let msg = RepeatedMessage::default()
   try {
     for {
       match (reader |> @protobuf.read_tag()) {
         (1, _) =>
           msg.bar_message.push(
-            {
-              let len = reader |> @protobuf.read_int32()
-              if len == 0 {
-                BarMessage::default()
-              } else {
-                BarMessage::read_with_limit(reader, limit=len)
-              }
-            },
+            (reader |> @protobuf.read_message() : BarMessage),
           )
         (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
@@ -1978,19 +1634,18 @@ pub fn[R : @protobuf.Reader] RepeatedMessage::read_with_limit(
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
 
 ///|
-pub fn[W : @protobuf.Writer] RepeatedMessage::write(
-  self : Self,
-  writer : W,
+pub impl @protobuf.Write for RepeatedMessage with write(
+  self : RepeatedMessage,
+  writer : &@protobuf.Writer,
 ) -> Unit raise {
   for item in self.bar_message {
     writer |> @protobuf.write_varint(10UL)
     writer |> @protobuf.write_uint32(@protobuf.size_of(item))
-    item.write(writer)
+    @protobuf.Write::write(item, writer)
   }
 }
 
@@ -2025,41 +1680,28 @@ pub impl @json.FromJson for RepeatedMessage with from_json(
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] RepeatedMessage::async_read(
-  reader : R,
-) -> RepeatedMessage raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  RepeatedMessage::async_read_with_limit(reader)
+pub impl @protobuf.AsyncWrite for RepeatedMessage with write(
+  self : RepeatedMessage,
+  writer : &@protobuf.AsyncWriter,
+) -> Unit raise {
+  for item in self.bar_message {
+    writer |> @protobuf.async_write_varint(10UL)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item))
+    @protobuf.AsyncWrite::write(item, writer)
+  }
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] RepeatedMessage::async_read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
+pub impl @protobuf.AsyncRead for RepeatedMessage with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.AsyncReader],
 ) -> RepeatedMessage raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
   let msg = RepeatedMessage::default()
   try {
     for {
       match (reader |> @protobuf.async_read_tag()) {
         (1, _) =>
           msg.bar_message.push(
-            {
-              let len = reader |> @protobuf.async_read_int32()
-              if len == 0 {
-                BarMessage::default()
-              } else {
-                BarMessage::async_read_with_limit(reader, limit=len)
-              }
-            },
+            (reader |> @protobuf.async_read_message() : BarMessage),
           )
         (_, wire) => reader |> @protobuf.async_read_unknown(wire)
       }
@@ -2068,20 +1710,7 @@ pub async fn[R : @protobuf.AsyncReader] RepeatedMessage::async_read_with_limit(
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
-}
-
-///|
-pub async fn[W : @protobuf.AsyncWriter] RepeatedMessage::async_write(
-  self : Self,
-  writer : W,
-) -> Unit raise {
-  for item in self.bar_message {
-    writer |> @protobuf.async_write_varint(10UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item))
-    item.async_write(writer)
-  }
 }
 
 ///|
@@ -2107,27 +1736,9 @@ pub fn EmptyMessage::new(field : Int) -> EmptyMessage {
 }
 
 ///|
-pub fn[R : @protobuf.Reader] EmptyMessage::read(
-  reader : R,
+pub impl @protobuf.Read for EmptyMessage with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.Reader],
 ) -> EmptyMessage raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  EmptyMessage::read_with_limit(reader)
-}
-
-///|
-pub fn[R : @protobuf.Reader] EmptyMessage::read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
-) -> EmptyMessage raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
   let msg = EmptyMessage::default()
   try {
     for {
@@ -2140,14 +1751,13 @@ pub fn[R : @protobuf.Reader] EmptyMessage::read_with_limit(
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
 
 ///|
-pub fn[W : @protobuf.Writer] EmptyMessage::write(
-  self : Self,
-  writer : W,
+pub impl @protobuf.Write for EmptyMessage with write(
+  self : EmptyMessage,
+  writer : &@protobuf.Writer,
 ) -> Unit raise {
   writer |> @protobuf.write_varint(8UL)
   writer |> @protobuf.write_int32(self.field)
@@ -2181,27 +1791,18 @@ pub impl @json.FromJson for EmptyMessage with from_json(
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] EmptyMessage::async_read(
-  reader : R,
-) -> EmptyMessage raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  EmptyMessage::async_read_with_limit(reader)
+pub impl @protobuf.AsyncWrite for EmptyMessage with write(
+  self : EmptyMessage,
+  writer : &@protobuf.AsyncWriter,
+) -> Unit raise {
+  writer |> @protobuf.async_write_varint(8UL)
+  writer |> @protobuf.async_write_int32(self.field)
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] EmptyMessage::async_read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
+pub impl @protobuf.AsyncRead for EmptyMessage with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.AsyncReader],
 ) -> EmptyMessage raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
   let msg = EmptyMessage::default()
   try {
     for {
@@ -2214,17 +1815,7 @@ pub async fn[R : @protobuf.AsyncReader] EmptyMessage::async_read_with_limit(
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
-}
-
-///|
-pub async fn[W : @protobuf.AsyncWriter] EmptyMessage::async_write(
-  self : Self,
-  writer : W,
-) -> Unit raise {
-  writer |> @protobuf.async_write_varint(8UL)
-  writer |> @protobuf.async_write_int32(self.field)
 }
 
 ///|
@@ -2256,40 +1847,15 @@ pub fn EmptyMessageWithField::new(
 }
 
 ///|
-pub fn[R : @protobuf.Reader] EmptyMessageWithField::read(
-  reader : R,
+pub impl @protobuf.Read for EmptyMessageWithField with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.Reader],
 ) -> EmptyMessageWithField raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  EmptyMessageWithField::read_with_limit(reader)
-}
-
-///|
-pub fn[R : @protobuf.Reader] EmptyMessageWithField::read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
-) -> EmptyMessageWithField raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
   let msg = EmptyMessageWithField::default()
   try {
     for {
       match (reader |> @protobuf.read_tag()) {
         (1, _) =>
-          msg.empty_message = {
-            let len = reader |> @protobuf.read_int32()
-            if len == 0 {
-              EmptyMessage::default()
-            } else {
-              EmptyMessage::read_with_limit(reader, limit=len)
-            }
-          }
+          msg.empty_message = (reader |> @protobuf.read_message() : EmptyMessage)
         (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
@@ -2297,18 +1863,17 @@ pub fn[R : @protobuf.Reader] EmptyMessageWithField::read_with_limit(
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
 
 ///|
-pub fn[W : @protobuf.Writer] EmptyMessageWithField::write(
-  self : Self,
-  writer : W,
+pub impl @protobuf.Write for EmptyMessageWithField with write(
+  self : EmptyMessageWithField,
+  writer : &@protobuf.Writer,
 ) -> Unit raise {
   writer |> @protobuf.write_varint(10UL)
   writer |> @protobuf.write_uint32(@protobuf.size_of(self.empty_message))
-  self.empty_message.write(writer)
+  @protobuf.Write::write(self.empty_message, writer)
 }
 
 ///|
@@ -2342,40 +1907,26 @@ pub impl @json.FromJson for EmptyMessageWithField with from_json(
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] EmptyMessageWithField::async_read(
-  reader : R,
-) -> EmptyMessageWithField raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  EmptyMessageWithField::async_read_with_limit(reader)
+pub impl @protobuf.AsyncWrite for EmptyMessageWithField with write(
+  self : EmptyMessageWithField,
+  writer : &@protobuf.AsyncWriter,
+) -> Unit raise {
+  writer |> @protobuf.async_write_varint(10UL)
+  writer |> @protobuf.async_write_uint32(@protobuf.size_of(self.empty_message))
+  @protobuf.AsyncWrite::write(self.empty_message, writer)
 }
 
 ///|
-pub async fn[R : @protobuf.AsyncReader] EmptyMessageWithField::async_read_with_limit(
-  reader : @protobuf.LimitedReader[R],
-  limit? : Int,
+pub impl @protobuf.AsyncRead for EmptyMessageWithField with read_with_limit(
+  reader : @protobuf.LimitedReader[&@protobuf.AsyncReader],
 ) -> EmptyMessageWithField raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit {
-      raise @protobuf.EndOfStream
-    }
-    Some(l - limit)
-  } else {
-    None
-  }
-  reader.limit = limit
   let msg = EmptyMessageWithField::default()
   try {
     for {
       match (reader |> @protobuf.async_read_tag()) {
         (1, _) =>
-          msg.empty_message = {
-            let len = reader |> @protobuf.async_read_int32()
-            if len == 0 {
-              EmptyMessage::default()
-            } else {
-              EmptyMessage::async_read_with_limit(reader, limit=len)
-            }
-          }
+          msg.empty_message = (
+            reader |> @protobuf.async_read_message() : EmptyMessage)
         (_, wire) => reader |> @protobuf.async_read_unknown(wire)
       }
     }
@@ -2383,16 +1934,5 @@ pub async fn[R : @protobuf.AsyncReader] EmptyMessageWithField::async_read_with_l
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
-}
-
-///|
-pub async fn[W : @protobuf.AsyncWriter] EmptyMessageWithField::async_write(
-  self : Self,
-  writer : W,
-) -> Unit raise {
-  writer |> @protobuf.async_write_varint(10UL)
-  writer |> @protobuf.async_write_uint32(@protobuf.size_of(self.empty_message))
-  self.empty_message.async_write(writer)
 }

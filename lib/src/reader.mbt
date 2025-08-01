@@ -218,11 +218,26 @@ pub fn[T : Reader] read_string(reader : T) -> String raise {
 }
 
 ///|
-pub fn[M : Read + Default, R : Reader] read_message(reader : R) -> M raise {
-  let len = reader |> read_varint32()
+pub fn[M : Read + Default] read_message(
+  reader : LimitedReader[&Reader],
+) -> M raise {
+  let len = reader |> read_int32()
   match len {
     0 => M::default()
-    _ => reader |> M::read()
+    _ => {
+      let new_limit = if reader.limit is Some(l) {
+        if l < len {
+          raise EndOfStream
+        }
+        Some(l - len)
+      } else {
+        None
+      }
+      reader.limit = Some(len)
+      let msg = reader |> M::read_with_limit()
+      reader.limit = new_limit
+      msg
+    }
   }
 }
 

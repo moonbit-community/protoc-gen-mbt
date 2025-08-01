@@ -209,18 +209,33 @@ pub async fn[T : AsyncReader] async_read_string(reader : T) -> String raise {
 }
 
 ///|
-// pub async fn[M : Read + Default, R  : AsyncReader] async_read_message(reader : R) -> M raise {
-//   let len = reader |> async_read_varint32()
-//   match len {
-//     0 => M::default()
-//     _ => reader |> M::read()
-//   }
-// }
+pub async fn[M : AsyncRead + Default] async_read_message(
+  reader : LimitedReader[&AsyncReader],
+) -> M raise {
+  let len = reader |> async_read_int32()
+  match len {
+    0 => M::default()
+    _ => {
+      let new_limit = if reader.limit is Some(l) {
+        if l < len {
+          raise EndOfStream
+        }
+        Some(l - len)
+      } else {
+        None
+      }
+      reader.limit = Some(len)
+      let msg = reader |> M::read_with_limit()
+      reader.limit = new_limit
+      msg
+    }
+  }
+}
 
-// /| Reads packed repeated field (Array[M])
-// /
-// / Note: packed field are stored as a variable length chunk of data, while regular repeated
-// / fields behaves like an iterator, yielding their tag everytime
+///| Reads packed repeated field (Array[M])
+///
+/// Note: packed field are stored as a variable length chunk of data, while regular repeated
+/// fields behaves like an iterator, yielding their tag everytime
 pub async fn[M : Sized, R : AsyncReader] async_read_packed(
   reader : R,
   async_read_fn : async (LimitedReader[R]) -> M raise,

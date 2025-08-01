@@ -161,11 +161,13 @@ fn CodeGenerator::gen_enum(
         "    \{enum_name}::\{value_name} => \"\{value_name}\"\n",
       )
     }
-    file.write_string((
-      #|  }
-      #|}
-      #|
-    ))
+    file.write_string(
+      (
+        #|  }
+        #|}
+        #|
+      ),
+    )
   }
 
   // End
@@ -291,8 +293,8 @@ fn CodeGenerator::gen_message(
     self.gen_message_json(message, file)
   }
   if self.support_async() {
-    self.gen_message_reader(message, file, is_async=true)
     self.gen_message_writer(message, file, is_async=true)
+    self.gen_message_reader(message, file, is_async=true)
   }
 }
 
@@ -303,10 +305,12 @@ fn CodeGenerator::gen_message_default(
   content : StringBuilder,
 ) -> Unit raise {
   let message_name = message.import_path.path() |> to_camel_case
-  content.write_string((
-    $|pub impl Default for \{message_name} with default() -> \{message_name} {
-    $|  \{message_name}::{\n
-  ))
+  content.write_string(
+    (
+      $|pub impl Default for \{message_name} with default() -> \{message_name} {
+      $|  \{message_name}::{\n
+    ),
+  )
   for field in message.fields {
     let field_type = self.get_moonbit_type(
       field,
@@ -424,7 +428,7 @@ fn CodeGenerator::gen_message_json(
         $|pub impl ToJson for \{message_name} with to_json(_) {
         #|  {}
         #|}
-        $|pub impl @json.FromJson for \{message_name} with from_json(json: Json, path: @json.JsonPath) -> \{message_name} noraise {
+        $|pub impl @json.FromJson for \{message_name} with from_json(_, _) -> \{message_name} noraise {
         $|  \{message_name}::default()
         #|}
         #|
@@ -929,11 +933,7 @@ fn gen_message_reader(
   if message.fields.is_empty() {
     content.write_string(
       (
-        $|pub \{async_keyword} fn[R] \{message_name}::\{async_keyword_to_snake}read(reader : R) -> \{message_name} noraise {
-        #|  let reader = @protobuf.LimitedReader::new(reader)
-        $|  \{message_name}::\{async_keyword_to_snake}read_with_limit(reader)
-        #|}
-        $|pub \{async_keyword} fn[R] \{message_name}::\{async_keyword_to_snake}read_with_limit(_ : @protobuf.LimitedReader[R], _limit ?: Int) -> \{message_name} noraise {
+        $|pub impl @protobuf.\{async_keyword_to_title}Read for \{message_name} with read_with_limit(_) -> \{message_name} noraise {
         $|  \{message_name}::default()
         #|}
         #|
@@ -943,16 +943,7 @@ fn gen_message_reader(
   }
   content.write_string(
     (
-      $|pub \{async_keyword} fn[R: @protobuf.\{async_keyword_to_title}Reader] \{message_name}::\{async_keyword_to_snake}read(reader : R) -> \{message_name} raise {
-      #|  let reader = @protobuf.LimitedReader::new(reader)
-      $|  \{message_name}::\{async_keyword_to_snake}read_with_limit(reader)
-      #|}
-      $|pub \{async_keyword} fn[R: @protobuf.\{async_keyword_to_title}Reader] \{message_name}::\{async_keyword_to_snake}read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> \{message_name} raise {
-      #|  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-      #|    if l < limit { raise @protobuf.EndOfStream }
-      #|    Some(l - limit)
-      #|  } else { None }
-      #|  reader.limit = limit
+      $|pub impl @protobuf.\{async_keyword_to_title}Read for \{message_name} with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.\{async_keyword_to_title}Reader]) -> \{message_name} raise {
       $|  let msg = \{message_name}::default()
       #|
     ),
@@ -1000,7 +991,6 @@ fn gen_message_reader(
       #|    @protobuf.EndOfStream => ()
       #|    err => raise err
       #|  }
-      #|  reader.limit = new_limit
       #|  msg
       #|}
       #|
@@ -1140,16 +1130,7 @@ fn gen_kind_read(
     FieldType::TYPE_ENUM =>
       "reader |> @protobuf.\{async_keyword}read_enum() |> \{type_name}::from_enum"
     FieldType::TYPE_MESSAGE =>
-      (
-        #|  {
-        $|    let len = reader |> @protobuf.\{async_keyword}read_int32()
-        #|    if len == 0 {
-        $|      \{type_name}::default()
-        #|    } else {
-        $|      \{type_name}::\{async_keyword}read_with_limit(reader, limit=len)
-        $|    }
-        #|  }
-      )
+      "(reader |> @protobuf.\{async_keyword}read_message() : \{type_name})"
     FieldType::TYPE_GROUP => raise UnsupportedType("Group")
   }
 }
@@ -1162,14 +1143,13 @@ fn gen_message_writer(
   is_async~ : Bool = false,
 ) -> Unit raise {
   let message_name = message.import_path.path() |> to_camel_case
-  // let async_snake = is_async |> pascal_to_snake
   let async_keyword = if is_async { "async" } else { "" }
   let async_keyword_to_snake = async_keyword |> pascal_to_snake
   let async_keyword_to_title = async_keyword |> title
   if message.fields.is_empty() {
     content.write_string(
       (
-        $|pub \{async_keyword} fn[W: @protobuf.\{async_keyword_to_title}Writer] \{message_name}::\{async_keyword_to_snake}write(_: Self, _ : W) -> Unit noraise {
+        $|pub impl @protobuf.\{async_keyword_to_title}Write for \{message_name} with write(_, _) -> Unit noraise {
         $|}
         $|
       ),
@@ -1177,7 +1157,7 @@ fn gen_message_writer(
     return
   }
   content.write_string(
-    "pub \{async_keyword} fn[W: @protobuf.\{async_keyword_to_title}Writer] \{message_name}::\{async_keyword_to_snake}write(self:Self, writer : W) -> Unit raise {\n",
+    "pub impl @protobuf.\{async_keyword_to_title}Write for \{message_name} with write(self: \{message_name}, writer : &@protobuf.\{async_keyword_to_title}Writer) -> Unit raise {\n",
   )
   for field in message.fields {
     let field_name = field.import_path.name() |> pascal_to_snake
@@ -1407,13 +1387,14 @@ fn CodeGenerator::gen_kind_write(
     raise UnexpectedType("Field type is not set: \{field.import_path.name()}")
   }
   let async_keyword = if is_async { "async_" } else { "" }
+  let async_kewyord_to_title = if is_async { "Async" } else { "" }
   match field_type {
     FieldType::TYPE_STRING =>
       "writer |> @protobuf.\{async_keyword}write_string(\{variable})\n"
     FieldType::TYPE_BYTES =>
       "writer |> @protobuf.\{async_keyword}write_bytes(\{variable})\n"
     FieldType::TYPE_MESSAGE =>
-      "writer |> @protobuf.\{async_keyword}write_uint32(@protobuf.size_of(\{variable})); \{variable}.\{async_keyword}write(writer)\n"
+      "writer |> @protobuf.\{async_keyword}write_uint32(@protobuf.size_of(\{variable})); @protobuf.\{async_kewyord_to_title}Write::write(\{variable}, writer)\n"
     FieldType::TYPE_FIXED32 =>
       "writer |> @protobuf.\{async_keyword}write_fixed32(\{variable})\n"
     FieldType::TYPE_SFIXED32 =>

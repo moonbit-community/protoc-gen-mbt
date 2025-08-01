@@ -11,27 +11,19 @@ pub fn EmptyMessage::new() -> EmptyMessage {
   EmptyMessage::{
   }
 }
-pub  fn[R] EmptyMessage::read(reader : R) -> EmptyMessage noraise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  EmptyMessage::read_with_limit(reader)
-}
-pub  fn[R] EmptyMessage::read_with_limit(_ : @protobuf.LimitedReader[R], _limit ?: Int) -> EmptyMessage noraise {
+pub impl @protobuf.Read for EmptyMessage with read_with_limit(_) -> EmptyMessage noraise {
   EmptyMessage::default()
 }
-pub  fn[W: @protobuf.Writer] EmptyMessage::write(_: Self, _ : W) -> Unit noraise {
+pub impl @protobuf.Write for EmptyMessage with write(_, _) -> Unit noraise {
 }
 pub impl ToJson for EmptyMessage with to_json(_) {
   {}
 }
-pub impl @json.FromJson for EmptyMessage with from_json(json: Json, path: @json.JsonPath) -> EmptyMessage noraise {
+pub impl @json.FromJson for EmptyMessage with from_json(_, _) -> EmptyMessage noraise {
   EmptyMessage::default()
 }
-pub async fn[R] EmptyMessage::async_read(reader : R) -> EmptyMessage noraise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  EmptyMessage::async_read_with_limit(reader)
+pub impl @protobuf.AsyncWrite for EmptyMessage with write(_, _) -> Unit noraise {
 }
-pub async fn[R] EmptyMessage::async_read_with_limit(_ : @protobuf.LimitedReader[R], _limit ?: Int) -> EmptyMessage noraise {
+pub impl @protobuf.AsyncRead for EmptyMessage with read_with_limit(_) -> EmptyMessage noraise {
   EmptyMessage::default()
-}
-pub async fn[W: @protobuf.AsyncWriter] EmptyMessage::async_write(_: Self, _ : W) -> Unit noraise {
 }
