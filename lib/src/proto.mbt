@@ -14,12 +14,36 @@
 
 ///|
 pub(open) trait Read {
-  read(&Reader) -> Self raise
+  read(&Reader) -> Self raise = _
+  read_with_limit(LimitedReader[&Reader]) -> Self raise
+}
+
+///|
+impl Read with read(reader : &Reader) -> Self raise {
+  let reader = LimitedReader::new(reader)
+  Read::read_with_limit(reader)
 }
 
 ///|
 pub(open) trait Write {
   write(Self, &Writer) -> Unit raise
+}
+
+///|
+pub(open) trait AsyncRead {
+  async read(&AsyncReader) -> Self raise = _
+  async read_with_limit(LimitedReader[&AsyncReader]) -> Self raise
+}
+
+///|
+impl AsyncRead with read(reader : &AsyncReader) -> Self raise {
+  let reader = LimitedReader::new(reader)
+  AsyncRead::read_with_limit(reader)
+}
+
+///|
+pub(open) trait AsyncWrite {
+  async write(Self, &AsyncWriter) -> Unit raise
 }
 
 ///|

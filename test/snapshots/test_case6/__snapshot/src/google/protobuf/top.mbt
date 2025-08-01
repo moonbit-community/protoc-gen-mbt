@@ -20,16 +20,7 @@ pub fn Timestamp::new(seconds : Int64, nanos : Int) -> Timestamp {
     nanos,
   }
 }
-pub  fn[R: @protobuf.Reader] Timestamp::read(reader : R) -> Timestamp raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  Timestamp::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] Timestamp::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> Timestamp raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for Timestamp with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> Timestamp raise {
   let msg = Timestamp::default()
   try {
     for {
@@ -43,10 +34,9 @@ pub  fn[R: @protobuf.Reader] Timestamp::read_with_limit(reader : @protobuf.Limit
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] Timestamp::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for Timestamp with write(self: Timestamp, writer : &@protobuf.Writer) -> Unit raise {
   writer |> @protobuf.write_varint(8UL);
   writer |> @protobuf.write_int64(self.seconds)
   writer |> @protobuf.write_varint(16UL);
@@ -76,16 +66,13 @@ pub impl @json.FromJson for Timestamp with from_json(json: Json, path: @json.Jso
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] Timestamp::async_read(reader : R) -> Timestamp raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  Timestamp::async_read_with_limit(reader)
+pub impl @protobuf.AsyncWrite for Timestamp with write(self: Timestamp, writer : &@protobuf.AsyncWriter) -> Unit raise {
+  writer |> @protobuf.async_write_varint(8UL);
+  writer |> @protobuf.async_write_int64(self.seconds)
+  writer |> @protobuf.async_write_varint(16UL);
+  writer |> @protobuf.async_write_int32(self.nanos)
 }
-pub async fn[R: @protobuf.AsyncReader] Timestamp::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> Timestamp raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.AsyncRead for Timestamp with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> Timestamp raise {
   let msg = Timestamp::default()
   try {
     for {
@@ -99,12 +86,5 @@ pub async fn[R: @protobuf.AsyncReader] Timestamp::async_read_with_limit(reader :
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
-}
-pub async fn[W: @protobuf.AsyncWriter] Timestamp::async_write(self:Self, writer : W) -> Unit raise {
-  writer |> @protobuf.async_write_varint(8UL);
-  writer |> @protobuf.async_write_int64(self.seconds)
-  writer |> @protobuf.async_write_varint(16UL);
-  writer |> @protobuf.async_write_int32(self.nanos)
 }

@@ -56,7 +56,7 @@ test "CodeGeneratorRequest::size_of/empty_arrays" {
   inspect(size > 0U, content="true")
   let writer = @buffer.new()
   async_run(async fn() -> Unit noraise {
-    request_empty_arrays.write(writer) catch {
+    @protobuf.AsyncWrite::write(request_empty_arrays, writer) catch {
       err => println("Error writing CodeGeneratorRequest: \{err}")
     }
   })
@@ -88,7 +88,7 @@ test "CodeGeneratorRequest::size_of/large_arrays" {
   inspect(size > 100U, content="true")
   let writer = @buffer.new()
   async_run(async fn() -> Unit noraise {
-    request_many_files.write(writer) catch {
+    @protobuf.AsyncWrite::write(request_many_files, writer) catch {
       err => println("Error writing CodeGeneratorRequest: \{err}")
     }
   })
@@ -211,7 +211,7 @@ test "CodeGeneratorRequest::size_of/single_file" {
   inspect(size > 10U, content="true")
   let writer = @buffer.new()
   async_run(async fn() -> Unit noraise {
-    request_single_file.write(writer) catch {
+    @protobuf.AsyncWrite::write(request_single_file, writer) catch {
       err => println("Error writing CodeGeneratorRequest: \{err}")
     }
   })
@@ -241,7 +241,7 @@ test "CodeGeneratorRequest::size_of/with_parameter" {
   inspect(size > 20U, content="true")
   let writer = @buffer.new()
   async_run(async fn() -> Unit noraise {
-    request_with_param.write(writer) catch {
+    @protobuf.AsyncWrite::write(request_with_param, writer) catch {
       err => println("Error writing CodeGeneratorRequest: \{err}")
     }
   })
@@ -292,7 +292,7 @@ test "CodeGeneratorRequest::size_of/medium_files" {
   inspect(size > 50U, content="true")
   let writer = @buffer.new()
   async_run(async fn() -> Unit noraise {
-    request_medium_files.write(writer) catch {
+    @protobuf.AsyncWrite::write(request_medium_files, writer) catch {
       err => println("Error writing CodeGeneratorRequest: \{err}")
     }
   })
@@ -328,7 +328,7 @@ test "CodeGeneratorRequest::size_of/special_characters" {
   inspect(size > 30U, content="true")
   let writer = @buffer.new()
   async_run(async fn() -> Unit noraise {
-    request_special.write(writer) catch {
+    @protobuf.AsyncWrite::write(request_special, writer) catch {
       err => println("Error writing CodeGeneratorRequest: \{err}")
     }
   })
@@ -359,7 +359,7 @@ test "CodeGeneratorRequest::size_of/long_parameter" {
   inspect(size > 300U, content="true")
   let writer = @buffer.new()
   async_run(async fn() -> Unit noraise {
-    request_long_param.write(writer) catch {
+    @protobuf.AsyncWrite::write(request_long_param, writer) catch {
       err => println("Error writing CodeGeneratorRequest: \{err}")
     }
   })
@@ -395,7 +395,7 @@ test "coroutine CodeGeneratorRequest::size_of/mixed_filename_lengths" {
   inspect(size > 80U, content="true")
   let writer = @buffer.new()
   async_run(async fn() -> Unit noraise {
-    request_mixed.write(writer) catch {
+    @protobuf.AsyncWrite::write(request_mixed, writer) catch {
       err => println("Error writing CodeGeneratorRequest: \{err}")
     }
   })
@@ -423,7 +423,7 @@ test "CodeGeneratorRequest::version/other_versions" {
   inspect(size == 0U, content="false")
   let writer = @buffer.new()
   async_run(async fn() -> Unit noraise {
-    request_empty_files.write(writer) catch {
+    @protobuf.AsyncWrite::write(request_empty_files, writer) catch {
       err => println("Error writing CodeGeneratorRequest: \{err}")
     }
   })

@@ -75,7 +75,7 @@ async fn parse_request(
   loop_ : @uv.Loop,
 ) -> @compiler.CodeGeneratorResponse noraise {
   let reader = Stdin::{ loop_, file: @uv.stdin() }
-  let request = @compiler.CodeGeneratorRequest::async_read(reader) catch {
+  let request = @lib.AsyncRead::read(reader) catch {
     err => {
       let response = @compiler.CodeGeneratorResponse::default()
       response.supported_features = Some(1)
@@ -103,5 +103,5 @@ async fn output_response(
   loop_ : @uv.Loop,
 ) -> Unit raise {
   let stdout = Stdout::{ loop_, file: @uv.stdout() }
-  response.async_write(stdout)
+  @lib.AsyncWrite::write(response, stdout)
 }

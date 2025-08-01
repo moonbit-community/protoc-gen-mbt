@@ -158,28 +158,12 @@ pub fn FileDescriptorSet::new(file : Array[FileDescriptorProto]) -> FileDescript
     file,
   }
 }
-pub  fn[R: @protobuf.Reader] FileDescriptorSet::read(reader : R) -> FileDescriptorSet raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FileDescriptorSet::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] FileDescriptorSet::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> FileDescriptorSet raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for FileDescriptorSet with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> FileDescriptorSet raise {
   let msg = FileDescriptorSet::default()
   try {
     for {
       match (reader |> @protobuf.read_tag()) {
-      (1, _) => msg.file.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      FileDescriptorProto::default()
-    } else {
-      FileDescriptorProto::read_with_limit(reader, limit=len)
-    }
-  })
+      (1, _) => msg.file.push((reader |> @protobuf.read_message() : FileDescriptorProto))
        (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
@@ -187,13 +171,12 @@ pub  fn[R: @protobuf.Reader] FileDescriptorSet::read_with_limit(reader : @protob
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] FileDescriptorSet::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for FileDescriptorSet with write(self: FileDescriptorSet, writer : &@protobuf.Writer) -> Unit raise {
   for item in self.file {
     writer |> @protobuf.write_varint(10UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
 }
@@ -218,28 +201,19 @@ pub impl @json.FromJson for FileDescriptorSet with from_json(json: Json, path: @
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] FileDescriptorSet::async_read(reader : R) -> FileDescriptorSet raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FileDescriptorSet::async_read_with_limit(reader)
+pub impl @protobuf.AsyncWrite for FileDescriptorSet with write(self: FileDescriptorSet, writer : &@protobuf.AsyncWriter) -> Unit raise {
+  for item in self.file {
+    writer |> @protobuf.async_write_varint(10UL)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
+
+  }
 }
-pub async fn[R: @protobuf.AsyncReader] FileDescriptorSet::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> FileDescriptorSet raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.AsyncRead for FileDescriptorSet with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> FileDescriptorSet raise {
   let msg = FileDescriptorSet::default()
   try {
     for {
       match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.file.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      FileDescriptorProto::default()
-    } else {
-      FileDescriptorProto::async_read_with_limit(reader, limit=len)
-    }
-  })
+      (1, _) => msg.file.push((reader |> @protobuf.async_read_message() : FileDescriptorProto))
        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
       }
     }
@@ -247,15 +221,7 @@ pub async fn[R: @protobuf.AsyncReader] FileDescriptorSet::async_read_with_limit(
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
-}
-pub async fn[W: @protobuf.AsyncWriter] FileDescriptorSet::async_write(self:Self, writer : W) -> Unit raise {
-  for item in self.file {
-    writer |> @protobuf.async_write_varint(10UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
-
-  }
 }
 pub(all) struct FileDescriptorProto {
   mut name : String?
@@ -345,16 +311,7 @@ pub fn FileDescriptorProto::new(name? : String, package_? : String, dependency :
     edition,
   }
 }
-pub  fn[R: @protobuf.Reader] FileDescriptorProto::read(reader : R) -> FileDescriptorProto raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FileDescriptorProto::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] FileDescriptorProto::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> FileDescriptorProto raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for FileDescriptorProto with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> FileDescriptorProto raise {
   let msg = FileDescriptorProto::default()
   try {
     for {
@@ -365,54 +322,12 @@ pub  fn[R: @protobuf.Reader] FileDescriptorProto::read_with_limit(reader : @prot
       (10, _) => msg.public_dependency.push(reader |> @protobuf.read_int32())
       (11, _) => msg.weak_dependency.push(reader |> @protobuf.read_int32())
       (15, _) => msg.option_dependency.push(reader |> @protobuf.read_string())
-      (4, _) => msg.message_type.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      DescriptorProto::default()
-    } else {
-      DescriptorProto::read_with_limit(reader, limit=len)
-    }
-  })
-      (5, _) => msg.enum_type.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      EnumDescriptorProto::default()
-    } else {
-      EnumDescriptorProto::read_with_limit(reader, limit=len)
-    }
-  })
-      (6, _) => msg.service.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      ServiceDescriptorProto::default()
-    } else {
-      ServiceDescriptorProto::read_with_limit(reader, limit=len)
-    }
-  })
-      (7, _) => msg.extension.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      FieldDescriptorProto::default()
-    } else {
-      FieldDescriptorProto::read_with_limit(reader, limit=len)
-    }
-  })
-      (8, _) => msg.options =   {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      FileOptions::default()
-    } else {
-      FileOptions::read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (9, _) => msg.source_code_info =   {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      SourceCodeInfo::default()
-    } else {
-      SourceCodeInfo::read_with_limit(reader, limit=len)
-    }
-  } |> Some
+      (4, _) => msg.message_type.push((reader |> @protobuf.read_message() : DescriptorProto))
+      (5, _) => msg.enum_type.push((reader |> @protobuf.read_message() : EnumDescriptorProto))
+      (6, _) => msg.service.push((reader |> @protobuf.read_message() : ServiceDescriptorProto))
+      (7, _) => msg.extension.push((reader |> @protobuf.read_message() : FieldDescriptorProto))
+      (8, _) => msg.options = (reader |> @protobuf.read_message() : FileOptions) |> Some
+      (9, _) => msg.source_code_info = (reader |> @protobuf.read_message() : SourceCodeInfo) |> Some
       (12, _) => msg.syntax = reader |> @protobuf.read_string() |> Some
       (14, _) => msg.edition = reader |> @protobuf.read_enum() |> Edition::from_enum |> Some
        (_, wire) => reader |> @protobuf.read_unknown(wire)
@@ -422,10 +337,9 @@ pub  fn[R: @protobuf.Reader] FileDescriptorProto::read_with_limit(reader : @prot
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] FileDescriptorProto::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for FileDescriptorProto with write(self: FileDescriptorProto, writer : &@protobuf.Writer) -> Unit raise {
   match self.name {
     Some(v) => {
       writer |> @protobuf.write_varint(10UL);
@@ -464,28 +378,28 @@ pub  fn[W: @protobuf.Writer] FileDescriptorProto::write(self:Self, writer : W) -
   }
   for item in self.message_type {
     writer |> @protobuf.write_varint(34UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
   for item in self.enum_type {
     writer |> @protobuf.write_varint(42UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
   for item in self.service {
     writer |> @protobuf.write_varint(50UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
   for item in self.extension {
     writer |> @protobuf.write_varint(58UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
   match self.options {
     Some(v) => {
       writer |> @protobuf.write_varint(66UL);
-      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); @protobuf.Write::write(v, writer)
 
     }
     None => ()
@@ -493,7 +407,7 @@ pub  fn[W: @protobuf.Writer] FileDescriptorProto::write(self:Self, writer : W) -
   match self.source_code_info {
     Some(v) => {
       writer |> @protobuf.write_varint(74UL);
-      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); @protobuf.Write::write(v, writer)
 
     }
     None => ()
@@ -601,87 +515,7 @@ pub impl @json.FromJson for FileDescriptorProto with from_json(json: Json, path:
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] FileDescriptorProto::async_read(reader : R) -> FileDescriptorProto raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FileDescriptorProto::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] FileDescriptorProto::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> FileDescriptorProto raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = FileDescriptorProto::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.name = reader |> @protobuf.async_read_string() |> Some
-      (2, _) => msg.package_ = reader |> @protobuf.async_read_string() |> Some
-      (3, _) => msg.dependency.push(reader |> @protobuf.async_read_string())
-      (10, _) => msg.public_dependency.push(reader |> @protobuf.async_read_int32())
-      (11, _) => msg.weak_dependency.push(reader |> @protobuf.async_read_int32())
-      (15, _) => msg.option_dependency.push(reader |> @protobuf.async_read_string())
-      (4, _) => msg.message_type.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      DescriptorProto::default()
-    } else {
-      DescriptorProto::async_read_with_limit(reader, limit=len)
-    }
-  })
-      (5, _) => msg.enum_type.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      EnumDescriptorProto::default()
-    } else {
-      EnumDescriptorProto::async_read_with_limit(reader, limit=len)
-    }
-  })
-      (6, _) => msg.service.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      ServiceDescriptorProto::default()
-    } else {
-      ServiceDescriptorProto::async_read_with_limit(reader, limit=len)
-    }
-  })
-      (7, _) => msg.extension.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      FieldDescriptorProto::default()
-    } else {
-      FieldDescriptorProto::async_read_with_limit(reader, limit=len)
-    }
-  })
-      (8, _) => msg.options =   {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      FileOptions::default()
-    } else {
-      FileOptions::async_read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (9, _) => msg.source_code_info =   {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      SourceCodeInfo::default()
-    } else {
-      SourceCodeInfo::async_read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (12, _) => msg.syntax = reader |> @protobuf.async_read_string() |> Some
-      (14, _) => msg.edition = reader |> @protobuf.async_read_enum() |> Edition::from_enum |> Some
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] FileDescriptorProto::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for FileDescriptorProto with write(self: FileDescriptorProto, writer : &@protobuf.AsyncWriter) -> Unit raise {
   match self.name {
     Some(v) => {
       writer |> @protobuf.async_write_varint(10UL);
@@ -720,28 +554,28 @@ pub async fn[W: @protobuf.AsyncWriter] FileDescriptorProto::async_write(self:Sel
   }
   for item in self.message_type {
     writer |> @protobuf.async_write_varint(34UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
   for item in self.enum_type {
     writer |> @protobuf.async_write_varint(42UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
   for item in self.service {
     writer |> @protobuf.async_write_varint(50UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
   for item in self.extension {
     writer |> @protobuf.async_write_varint(58UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
   match self.options {
     Some(v) => {
       writer |> @protobuf.async_write_varint(66UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); @protobuf.AsyncWrite::write(v, writer)
 
     }
     None => ()
@@ -749,7 +583,7 @@ pub async fn[W: @protobuf.AsyncWriter] FileDescriptorProto::async_write(self:Sel
   match self.source_code_info {
     Some(v) => {
       writer |> @protobuf.async_write_varint(74UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); @protobuf.AsyncWrite::write(v, writer)
 
     }
     None => ()
@@ -770,6 +604,34 @@ pub async fn[W: @protobuf.AsyncWriter] FileDescriptorProto::async_write(self:Sel
     }
     None => ()
   }
+}
+pub impl @protobuf.AsyncRead for FileDescriptorProto with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> FileDescriptorProto raise {
+  let msg = FileDescriptorProto::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.name = reader |> @protobuf.async_read_string() |> Some
+      (2, _) => msg.package_ = reader |> @protobuf.async_read_string() |> Some
+      (3, _) => msg.dependency.push(reader |> @protobuf.async_read_string())
+      (10, _) => msg.public_dependency.push(reader |> @protobuf.async_read_int32())
+      (11, _) => msg.weak_dependency.push(reader |> @protobuf.async_read_int32())
+      (15, _) => msg.option_dependency.push(reader |> @protobuf.async_read_string())
+      (4, _) => msg.message_type.push((reader |> @protobuf.async_read_message() : DescriptorProto))
+      (5, _) => msg.enum_type.push((reader |> @protobuf.async_read_message() : EnumDescriptorProto))
+      (6, _) => msg.service.push((reader |> @protobuf.async_read_message() : ServiceDescriptorProto))
+      (7, _) => msg.extension.push((reader |> @protobuf.async_read_message() : FieldDescriptorProto))
+      (8, _) => msg.options = (reader |> @protobuf.async_read_message() : FileOptions) |> Some
+      (9, _) => msg.source_code_info = (reader |> @protobuf.async_read_message() : SourceCodeInfo) |> Some
+      (12, _) => msg.syntax = reader |> @protobuf.async_read_string() |> Some
+      (14, _) => msg.edition = reader |> @protobuf.async_read_enum() |> Edition::from_enum |> Some
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 pub(all) struct DescriptorProto_ExtensionRange {
   mut start : Int?
@@ -806,30 +668,14 @@ pub fn DescriptorProto_ExtensionRange::new(start? : Int, end? : Int, options? : 
     options,
   }
 }
-pub  fn[R: @protobuf.Reader] DescriptorProto_ExtensionRange::read(reader : R) -> DescriptorProto_ExtensionRange raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  DescriptorProto_ExtensionRange::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] DescriptorProto_ExtensionRange::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> DescriptorProto_ExtensionRange raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for DescriptorProto_ExtensionRange with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> DescriptorProto_ExtensionRange raise {
   let msg = DescriptorProto_ExtensionRange::default()
   try {
     for {
       match (reader |> @protobuf.read_tag()) {
       (1, _) => msg.start = reader |> @protobuf.read_int32() |> Some
       (2, _) => msg.end = reader |> @protobuf.read_int32() |> Some
-      (3, _) => msg.options =   {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      ExtensionRangeOptions::default()
-    } else {
-      ExtensionRangeOptions::read_with_limit(reader, limit=len)
-    }
-  } |> Some
+      (3, _) => msg.options = (reader |> @protobuf.read_message() : ExtensionRangeOptions) |> Some
        (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
@@ -837,10 +683,9 @@ pub  fn[R: @protobuf.Reader] DescriptorProto_ExtensionRange::read_with_limit(rea
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] DescriptorProto_ExtensionRange::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for DescriptorProto_ExtensionRange with write(self: DescriptorProto_ExtensionRange, writer : &@protobuf.Writer) -> Unit raise {
   match self.start {
     Some(v) => {
       writer |> @protobuf.write_varint(8UL);
@@ -860,7 +705,7 @@ pub  fn[W: @protobuf.Writer] DescriptorProto_ExtensionRange::write(self:Self, wr
   match self.options {
     Some(v) => {
       writer |> @protobuf.write_varint(26UL);
-      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); @protobuf.Write::write(v, writer)
 
     }
     None => ()
@@ -897,41 +742,7 @@ pub impl @json.FromJson for DescriptorProto_ExtensionRange with from_json(json: 
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] DescriptorProto_ExtensionRange::async_read(reader : R) -> DescriptorProto_ExtensionRange raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  DescriptorProto_ExtensionRange::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] DescriptorProto_ExtensionRange::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> DescriptorProto_ExtensionRange raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = DescriptorProto_ExtensionRange::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.start = reader |> @protobuf.async_read_int32() |> Some
-      (2, _) => msg.end = reader |> @protobuf.async_read_int32() |> Some
-      (3, _) => msg.options =   {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      ExtensionRangeOptions::default()
-    } else {
-      ExtensionRangeOptions::async_read_with_limit(reader, limit=len)
-    }
-  } |> Some
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] DescriptorProto_ExtensionRange::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for DescriptorProto_ExtensionRange with write(self: DescriptorProto_ExtensionRange, writer : &@protobuf.AsyncWriter) -> Unit raise {
   match self.start {
     Some(v) => {
       writer |> @protobuf.async_write_varint(8UL);
@@ -951,11 +762,28 @@ pub async fn[W: @protobuf.AsyncWriter] DescriptorProto_ExtensionRange::async_wri
   match self.options {
     Some(v) => {
       writer |> @protobuf.async_write_varint(26UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); @protobuf.AsyncWrite::write(v, writer)
 
     }
     None => ()
   }
+}
+pub impl @protobuf.AsyncRead for DescriptorProto_ExtensionRange with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> DescriptorProto_ExtensionRange raise {
+  let msg = DescriptorProto_ExtensionRange::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.start = reader |> @protobuf.async_read_int32() |> Some
+      (2, _) => msg.end = reader |> @protobuf.async_read_int32() |> Some
+      (3, _) => msg.options = (reader |> @protobuf.async_read_message() : ExtensionRangeOptions) |> Some
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 pub(all) struct DescriptorProto_ReservedRange {
   mut start : Int?
@@ -985,16 +813,7 @@ pub fn DescriptorProto_ReservedRange::new(start? : Int, end? : Int) -> Descripto
     end,
   }
 }
-pub  fn[R: @protobuf.Reader] DescriptorProto_ReservedRange::read(reader : R) -> DescriptorProto_ReservedRange raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  DescriptorProto_ReservedRange::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] DescriptorProto_ReservedRange::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> DescriptorProto_ReservedRange raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for DescriptorProto_ReservedRange with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> DescriptorProto_ReservedRange raise {
   let msg = DescriptorProto_ReservedRange::default()
   try {
     for {
@@ -1008,10 +827,9 @@ pub  fn[R: @protobuf.Reader] DescriptorProto_ReservedRange::read_with_limit(read
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] DescriptorProto_ReservedRange::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for DescriptorProto_ReservedRange with write(self: DescriptorProto_ReservedRange, writer : &@protobuf.Writer) -> Unit raise {
   match self.start {
     Some(v) => {
       writer |> @protobuf.write_varint(8UL);
@@ -1055,33 +873,7 @@ pub impl @json.FromJson for DescriptorProto_ReservedRange with from_json(json: J
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] DescriptorProto_ReservedRange::async_read(reader : R) -> DescriptorProto_ReservedRange raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  DescriptorProto_ReservedRange::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] DescriptorProto_ReservedRange::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> DescriptorProto_ReservedRange raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = DescriptorProto_ReservedRange::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.start = reader |> @protobuf.async_read_int32() |> Some
-      (2, _) => msg.end = reader |> @protobuf.async_read_int32() |> Some
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] DescriptorProto_ReservedRange::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for DescriptorProto_ReservedRange with write(self: DescriptorProto_ReservedRange, writer : &@protobuf.AsyncWriter) -> Unit raise {
   match self.start {
     Some(v) => {
       writer |> @protobuf.async_write_varint(8UL);
@@ -1098,6 +890,22 @@ pub async fn[W: @protobuf.AsyncWriter] DescriptorProto_ReservedRange::async_writ
     }
     None => ()
   }
+}
+pub impl @protobuf.AsyncRead for DescriptorProto_ReservedRange with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> DescriptorProto_ReservedRange raise {
+  let msg = DescriptorProto_ReservedRange::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.start = reader |> @protobuf.async_read_int32() |> Some
+      (2, _) => msg.end = reader |> @protobuf.async_read_int32() |> Some
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 pub(all) struct DescriptorProto {
   mut name : String?
@@ -1166,85 +974,20 @@ pub fn DescriptorProto::new(name? : String, field : Array[FieldDescriptorProto],
     visibility,
   }
 }
-pub  fn[R: @protobuf.Reader] DescriptorProto::read(reader : R) -> DescriptorProto raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  DescriptorProto::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] DescriptorProto::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> DescriptorProto raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for DescriptorProto with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> DescriptorProto raise {
   let msg = DescriptorProto::default()
   try {
     for {
       match (reader |> @protobuf.read_tag()) {
       (1, _) => msg.name = reader |> @protobuf.read_string() |> Some
-      (2, _) => msg.field.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      FieldDescriptorProto::default()
-    } else {
-      FieldDescriptorProto::read_with_limit(reader, limit=len)
-    }
-  })
-      (6, _) => msg.extension.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      FieldDescriptorProto::default()
-    } else {
-      FieldDescriptorProto::read_with_limit(reader, limit=len)
-    }
-  })
-      (3, _) => msg.nested_type.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      DescriptorProto::default()
-    } else {
-      DescriptorProto::read_with_limit(reader, limit=len)
-    }
-  })
-      (4, _) => msg.enum_type.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      EnumDescriptorProto::default()
-    } else {
-      EnumDescriptorProto::read_with_limit(reader, limit=len)
-    }
-  })
-      (5, _) => msg.extension_range.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      DescriptorProto_ExtensionRange::default()
-    } else {
-      DescriptorProto_ExtensionRange::read_with_limit(reader, limit=len)
-    }
-  })
-      (8, _) => msg.oneof_decl.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      OneofDescriptorProto::default()
-    } else {
-      OneofDescriptorProto::read_with_limit(reader, limit=len)
-    }
-  })
-      (7, _) => msg.options =   {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      MessageOptions::default()
-    } else {
-      MessageOptions::read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (9, _) => msg.reserved_range.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      DescriptorProto_ReservedRange::default()
-    } else {
-      DescriptorProto_ReservedRange::read_with_limit(reader, limit=len)
-    }
-  })
+      (2, _) => msg.field.push((reader |> @protobuf.read_message() : FieldDescriptorProto))
+      (6, _) => msg.extension.push((reader |> @protobuf.read_message() : FieldDescriptorProto))
+      (3, _) => msg.nested_type.push((reader |> @protobuf.read_message() : DescriptorProto))
+      (4, _) => msg.enum_type.push((reader |> @protobuf.read_message() : EnumDescriptorProto))
+      (5, _) => msg.extension_range.push((reader |> @protobuf.read_message() : DescriptorProto_ExtensionRange))
+      (8, _) => msg.oneof_decl.push((reader |> @protobuf.read_message() : OneofDescriptorProto))
+      (7, _) => msg.options = (reader |> @protobuf.read_message() : MessageOptions) |> Some
+      (9, _) => msg.reserved_range.push((reader |> @protobuf.read_message() : DescriptorProto_ReservedRange))
       (10, _) => msg.reserved_name.push(reader |> @protobuf.read_string())
       (11, _) => msg.visibility = reader |> @protobuf.read_enum() |> SymbolVisibility::from_enum |> Some
        (_, wire) => reader |> @protobuf.read_unknown(wire)
@@ -1254,10 +997,9 @@ pub  fn[R: @protobuf.Reader] DescriptorProto::read_with_limit(reader : @protobuf
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] DescriptorProto::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for DescriptorProto with write(self: DescriptorProto, writer : &@protobuf.Writer) -> Unit raise {
   match self.name {
     Some(v) => {
       writer |> @protobuf.write_varint(10UL);
@@ -1268,45 +1010,45 @@ pub  fn[W: @protobuf.Writer] DescriptorProto::write(self:Self, writer : W) -> Un
   }
   for item in self.field {
     writer |> @protobuf.write_varint(18UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
   for item in self.extension {
     writer |> @protobuf.write_varint(50UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
   for item in self.nested_type {
     writer |> @protobuf.write_varint(26UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
   for item in self.enum_type {
     writer |> @protobuf.write_varint(34UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
   for item in self.extension_range {
     writer |> @protobuf.write_varint(42UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
   for item in self.oneof_decl {
     writer |> @protobuf.write_varint(66UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
   match self.options {
     Some(v) => {
       writer |> @protobuf.write_varint(58UL);
-      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); @protobuf.Write::write(v, writer)
 
     }
     None => ()
   }
   for item in self.reserved_range {
     writer |> @protobuf.write_varint(74UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
   for item in self.reserved_name {
@@ -1394,98 +1136,7 @@ pub impl @json.FromJson for DescriptorProto with from_json(json: Json, path: @js
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] DescriptorProto::async_read(reader : R) -> DescriptorProto raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  DescriptorProto::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] DescriptorProto::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> DescriptorProto raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = DescriptorProto::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.name = reader |> @protobuf.async_read_string() |> Some
-      (2, _) => msg.field.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      FieldDescriptorProto::default()
-    } else {
-      FieldDescriptorProto::async_read_with_limit(reader, limit=len)
-    }
-  })
-      (6, _) => msg.extension.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      FieldDescriptorProto::default()
-    } else {
-      FieldDescriptorProto::async_read_with_limit(reader, limit=len)
-    }
-  })
-      (3, _) => msg.nested_type.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      DescriptorProto::default()
-    } else {
-      DescriptorProto::async_read_with_limit(reader, limit=len)
-    }
-  })
-      (4, _) => msg.enum_type.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      EnumDescriptorProto::default()
-    } else {
-      EnumDescriptorProto::async_read_with_limit(reader, limit=len)
-    }
-  })
-      (5, _) => msg.extension_range.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      DescriptorProto_ExtensionRange::default()
-    } else {
-      DescriptorProto_ExtensionRange::async_read_with_limit(reader, limit=len)
-    }
-  })
-      (8, _) => msg.oneof_decl.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      OneofDescriptorProto::default()
-    } else {
-      OneofDescriptorProto::async_read_with_limit(reader, limit=len)
-    }
-  })
-      (7, _) => msg.options =   {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      MessageOptions::default()
-    } else {
-      MessageOptions::async_read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (9, _) => msg.reserved_range.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      DescriptorProto_ReservedRange::default()
-    } else {
-      DescriptorProto_ReservedRange::async_read_with_limit(reader, limit=len)
-    }
-  })
-      (10, _) => msg.reserved_name.push(reader |> @protobuf.async_read_string())
-      (11, _) => msg.visibility = reader |> @protobuf.async_read_enum() |> SymbolVisibility::from_enum |> Some
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] DescriptorProto::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for DescriptorProto with write(self: DescriptorProto, writer : &@protobuf.AsyncWriter) -> Unit raise {
   match self.name {
     Some(v) => {
       writer |> @protobuf.async_write_varint(10UL);
@@ -1496,45 +1147,45 @@ pub async fn[W: @protobuf.AsyncWriter] DescriptorProto::async_write(self:Self, w
   }
   for item in self.field {
     writer |> @protobuf.async_write_varint(18UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
   for item in self.extension {
     writer |> @protobuf.async_write_varint(50UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
   for item in self.nested_type {
     writer |> @protobuf.async_write_varint(26UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
   for item in self.enum_type {
     writer |> @protobuf.async_write_varint(34UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
   for item in self.extension_range {
     writer |> @protobuf.async_write_varint(42UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
   for item in self.oneof_decl {
     writer |> @protobuf.async_write_varint(66UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
   match self.options {
     Some(v) => {
       writer |> @protobuf.async_write_varint(58UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); @protobuf.AsyncWrite::write(v, writer)
 
     }
     None => ()
   }
   for item in self.reserved_range {
     writer |> @protobuf.async_write_varint(74UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
   for item in self.reserved_name {
@@ -1550,6 +1201,31 @@ pub async fn[W: @protobuf.AsyncWriter] DescriptorProto::async_write(self:Self, w
     }
     None => ()
   }
+}
+pub impl @protobuf.AsyncRead for DescriptorProto with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> DescriptorProto raise {
+  let msg = DescriptorProto::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.name = reader |> @protobuf.async_read_string() |> Some
+      (2, _) => msg.field.push((reader |> @protobuf.async_read_message() : FieldDescriptorProto))
+      (6, _) => msg.extension.push((reader |> @protobuf.async_read_message() : FieldDescriptorProto))
+      (3, _) => msg.nested_type.push((reader |> @protobuf.async_read_message() : DescriptorProto))
+      (4, _) => msg.enum_type.push((reader |> @protobuf.async_read_message() : EnumDescriptorProto))
+      (5, _) => msg.extension_range.push((reader |> @protobuf.async_read_message() : DescriptorProto_ExtensionRange))
+      (8, _) => msg.oneof_decl.push((reader |> @protobuf.async_read_message() : OneofDescriptorProto))
+      (7, _) => msg.options = (reader |> @protobuf.async_read_message() : MessageOptions) |> Some
+      (9, _) => msg.reserved_range.push((reader |> @protobuf.async_read_message() : DescriptorProto_ReservedRange))
+      (10, _) => msg.reserved_name.push(reader |> @protobuf.async_read_string())
+      (11, _) => msg.visibility = reader |> @protobuf.async_read_enum() |> SymbolVisibility::from_enum |> Some
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 pub(all) enum ExtensionRangeOptions_VerificationState {
   DECLARATION
@@ -1638,16 +1314,7 @@ pub fn ExtensionRangeOptions_Declaration::new(number? : Int, full_name? : String
     repeated,
   }
 }
-pub  fn[R: @protobuf.Reader] ExtensionRangeOptions_Declaration::read(reader : R) -> ExtensionRangeOptions_Declaration raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  ExtensionRangeOptions_Declaration::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] ExtensionRangeOptions_Declaration::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> ExtensionRangeOptions_Declaration raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for ExtensionRangeOptions_Declaration with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> ExtensionRangeOptions_Declaration raise {
   let msg = ExtensionRangeOptions_Declaration::default()
   try {
     for {
@@ -1664,10 +1331,9 @@ pub  fn[R: @protobuf.Reader] ExtensionRangeOptions_Declaration::read_with_limit(
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] ExtensionRangeOptions_Declaration::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for ExtensionRangeOptions_Declaration with write(self: ExtensionRangeOptions_Declaration, writer : &@protobuf.Writer) -> Unit raise {
   match self.number {
     Some(v) => {
       writer |> @protobuf.write_varint(8UL);
@@ -1750,36 +1416,7 @@ pub impl @json.FromJson for ExtensionRangeOptions_Declaration with from_json(jso
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] ExtensionRangeOptions_Declaration::async_read(reader : R) -> ExtensionRangeOptions_Declaration raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  ExtensionRangeOptions_Declaration::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] ExtensionRangeOptions_Declaration::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> ExtensionRangeOptions_Declaration raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = ExtensionRangeOptions_Declaration::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.number = reader |> @protobuf.async_read_int32() |> Some
-      (2, _) => msg.full_name = reader |> @protobuf.async_read_string() |> Some
-      (3, _) => msg.type_ = reader |> @protobuf.async_read_string() |> Some
-      (5, _) => msg.reserved = reader |> @protobuf.async_read_bool() |> Some
-      (6, _) => msg.repeated = reader |> @protobuf.async_read_bool() |> Some
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] ExtensionRangeOptions_Declaration::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for ExtensionRangeOptions_Declaration with write(self: ExtensionRangeOptions_Declaration, writer : &@protobuf.AsyncWriter) -> Unit raise {
   match self.number {
     Some(v) => {
       writer |> @protobuf.async_write_varint(8UL);
@@ -1821,6 +1458,25 @@ pub async fn[W: @protobuf.AsyncWriter] ExtensionRangeOptions_Declaration::async_
     None => ()
   }
 }
+pub impl @protobuf.AsyncRead for ExtensionRangeOptions_Declaration with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> ExtensionRangeOptions_Declaration raise {
+  let msg = ExtensionRangeOptions_Declaration::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.number = reader |> @protobuf.async_read_int32() |> Some
+      (2, _) => msg.full_name = reader |> @protobuf.async_read_string() |> Some
+      (3, _) => msg.type_ = reader |> @protobuf.async_read_string() |> Some
+      (5, _) => msg.reserved = reader |> @protobuf.async_read_bool() |> Some
+      (6, _) => msg.repeated = reader |> @protobuf.async_read_bool() |> Some
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
+}
 pub(all) struct ExtensionRangeOptions {
   mut uninterpreted_option : Array[UninterpretedOption]
   mut declaration : Array[ExtensionRangeOptions_Declaration]
@@ -1857,44 +1513,14 @@ pub fn ExtensionRangeOptions::new(uninterpreted_option : Array[UninterpretedOpti
     verification,
   }
 }
-pub  fn[R: @protobuf.Reader] ExtensionRangeOptions::read(reader : R) -> ExtensionRangeOptions raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  ExtensionRangeOptions::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] ExtensionRangeOptions::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> ExtensionRangeOptions raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for ExtensionRangeOptions with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> ExtensionRangeOptions raise {
   let msg = ExtensionRangeOptions::default()
   try {
     for {
       match (reader |> @protobuf.read_tag()) {
-      (999, _) => msg.uninterpreted_option.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      UninterpretedOption::default()
-    } else {
-      UninterpretedOption::read_with_limit(reader, limit=len)
-    }
-  })
-      (2, _) => msg.declaration.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      ExtensionRangeOptions_Declaration::default()
-    } else {
-      ExtensionRangeOptions_Declaration::read_with_limit(reader, limit=len)
-    }
-  })
-      (50, _) => msg.features =   {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      FeatureSet::default()
-    } else {
-      FeatureSet::read_with_limit(reader, limit=len)
-    }
-  } |> Some
+      (999, _) => msg.uninterpreted_option.push((reader |> @protobuf.read_message() : UninterpretedOption))
+      (2, _) => msg.declaration.push((reader |> @protobuf.read_message() : ExtensionRangeOptions_Declaration))
+      (50, _) => msg.features = (reader |> @protobuf.read_message() : FeatureSet) |> Some
       (3, _) => msg.verification = reader |> @protobuf.read_enum() |> ExtensionRangeOptions_VerificationState::from_enum |> Some
        (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
@@ -1903,24 +1529,23 @@ pub  fn[R: @protobuf.Reader] ExtensionRangeOptions::read_with_limit(reader : @pr
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] ExtensionRangeOptions::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for ExtensionRangeOptions with write(self: ExtensionRangeOptions, writer : &@protobuf.Writer) -> Unit raise {
   for item in self.uninterpreted_option {
     writer |> @protobuf.write_varint(7994UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
   for item in self.declaration {
     writer |> @protobuf.write_varint(18UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
   match self.features {
     Some(v) => {
       writer |> @protobuf.write_varint(402UL);
-      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); @protobuf.Write::write(v, writer)
 
     }
     None => ()
@@ -1970,70 +1595,21 @@ pub impl @json.FromJson for ExtensionRangeOptions with from_json(json: Json, pat
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] ExtensionRangeOptions::async_read(reader : R) -> ExtensionRangeOptions raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  ExtensionRangeOptions::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] ExtensionRangeOptions::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> ExtensionRangeOptions raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = ExtensionRangeOptions::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (999, _) => msg.uninterpreted_option.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      UninterpretedOption::default()
-    } else {
-      UninterpretedOption::async_read_with_limit(reader, limit=len)
-    }
-  })
-      (2, _) => msg.declaration.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      ExtensionRangeOptions_Declaration::default()
-    } else {
-      ExtensionRangeOptions_Declaration::async_read_with_limit(reader, limit=len)
-    }
-  })
-      (50, _) => msg.features =   {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      FeatureSet::default()
-    } else {
-      FeatureSet::async_read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (3, _) => msg.verification = reader |> @protobuf.async_read_enum() |> ExtensionRangeOptions_VerificationState::from_enum |> Some
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] ExtensionRangeOptions::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for ExtensionRangeOptions with write(self: ExtensionRangeOptions, writer : &@protobuf.AsyncWriter) -> Unit raise {
   for item in self.uninterpreted_option {
     writer |> @protobuf.async_write_varint(7994UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
   for item in self.declaration {
     writer |> @protobuf.async_write_varint(18UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
   match self.features {
     Some(v) => {
       writer |> @protobuf.async_write_varint(402UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); @protobuf.AsyncWrite::write(v, writer)
 
     }
     None => ()
@@ -2046,6 +1622,24 @@ pub async fn[W: @protobuf.AsyncWriter] ExtensionRangeOptions::async_write(self:S
     }
     None => ()
   }
+}
+pub impl @protobuf.AsyncRead for ExtensionRangeOptions with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> ExtensionRangeOptions raise {
+  let msg = ExtensionRangeOptions::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (999, _) => msg.uninterpreted_option.push((reader |> @protobuf.async_read_message() : UninterpretedOption))
+      (2, _) => msg.declaration.push((reader |> @protobuf.async_read_message() : ExtensionRangeOptions_Declaration))
+      (50, _) => msg.features = (reader |> @protobuf.async_read_message() : FeatureSet) |> Some
+      (3, _) => msg.verification = reader |> @protobuf.async_read_enum() |> ExtensionRangeOptions_VerificationState::from_enum |> Some
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 pub(all) enum FieldDescriptorProto_Type {
   TYPE_DOUBLE
@@ -2316,16 +1910,7 @@ pub fn FieldDescriptorProto::new(name? : String, number? : Int, label? : FieldDe
     proto3_optional,
   }
 }
-pub  fn[R: @protobuf.Reader] FieldDescriptorProto::read(reader : R) -> FieldDescriptorProto raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FieldDescriptorProto::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] FieldDescriptorProto::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> FieldDescriptorProto raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for FieldDescriptorProto with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> FieldDescriptorProto raise {
   let msg = FieldDescriptorProto::default()
   try {
     for {
@@ -2339,14 +1924,7 @@ pub  fn[R: @protobuf.Reader] FieldDescriptorProto::read_with_limit(reader : @pro
       (7, _) => msg.default_value = reader |> @protobuf.read_string() |> Some
       (9, _) => msg.oneof_index = reader |> @protobuf.read_int32() |> Some
       (10, _) => msg.json_name = reader |> @protobuf.read_string() |> Some
-      (8, _) => msg.options =   {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      FieldOptions::default()
-    } else {
-      FieldOptions::read_with_limit(reader, limit=len)
-    }
-  } |> Some
+      (8, _) => msg.options = (reader |> @protobuf.read_message() : FieldOptions) |> Some
       (17, _) => msg.proto3_optional = reader |> @protobuf.read_bool() |> Some
        (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
@@ -2355,10 +1933,9 @@ pub  fn[R: @protobuf.Reader] FieldDescriptorProto::read_with_limit(reader : @pro
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] FieldDescriptorProto::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for FieldDescriptorProto with write(self: FieldDescriptorProto, writer : &@protobuf.Writer) -> Unit raise {
   match self.name {
     Some(v) => {
       writer |> @protobuf.write_varint(10UL);
@@ -2434,7 +2011,7 @@ pub  fn[W: @protobuf.Writer] FieldDescriptorProto::write(self:Self, writer : W) 
   match self.options {
     Some(v) => {
       writer |> @protobuf.write_varint(66UL);
-      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); @protobuf.Write::write(v, writer)
 
     }
     None => ()
@@ -2519,49 +2096,7 @@ pub impl @json.FromJson for FieldDescriptorProto with from_json(json: Json, path
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] FieldDescriptorProto::async_read(reader : R) -> FieldDescriptorProto raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FieldDescriptorProto::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] FieldDescriptorProto::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> FieldDescriptorProto raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = FieldDescriptorProto::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.name = reader |> @protobuf.async_read_string() |> Some
-      (3, _) => msg.number = reader |> @protobuf.async_read_int32() |> Some
-      (4, _) => msg.label = reader |> @protobuf.async_read_enum() |> FieldDescriptorProto_Label::from_enum |> Some
-      (5, _) => msg.type_ = reader |> @protobuf.async_read_enum() |> FieldDescriptorProto_Type::from_enum |> Some
-      (6, _) => msg.type_name = reader |> @protobuf.async_read_string() |> Some
-      (2, _) => msg.extendee = reader |> @protobuf.async_read_string() |> Some
-      (7, _) => msg.default_value = reader |> @protobuf.async_read_string() |> Some
-      (9, _) => msg.oneof_index = reader |> @protobuf.async_read_int32() |> Some
-      (10, _) => msg.json_name = reader |> @protobuf.async_read_string() |> Some
-      (8, _) => msg.options =   {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      FieldOptions::default()
-    } else {
-      FieldOptions::async_read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (17, _) => msg.proto3_optional = reader |> @protobuf.async_read_bool() |> Some
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] FieldDescriptorProto::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for FieldDescriptorProto with write(self: FieldDescriptorProto, writer : &@protobuf.AsyncWriter) -> Unit raise {
   match self.name {
     Some(v) => {
       writer |> @protobuf.async_write_varint(10UL);
@@ -2637,7 +2172,7 @@ pub async fn[W: @protobuf.AsyncWriter] FieldDescriptorProto::async_write(self:Se
   match self.options {
     Some(v) => {
       writer |> @protobuf.async_write_varint(66UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); @protobuf.AsyncWrite::write(v, writer)
 
     }
     None => ()
@@ -2650,6 +2185,31 @@ pub async fn[W: @protobuf.AsyncWriter] FieldDescriptorProto::async_write(self:Se
     }
     None => ()
   }
+}
+pub impl @protobuf.AsyncRead for FieldDescriptorProto with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> FieldDescriptorProto raise {
+  let msg = FieldDescriptorProto::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.name = reader |> @protobuf.async_read_string() |> Some
+      (3, _) => msg.number = reader |> @protobuf.async_read_int32() |> Some
+      (4, _) => msg.label = reader |> @protobuf.async_read_enum() |> FieldDescriptorProto_Label::from_enum |> Some
+      (5, _) => msg.type_ = reader |> @protobuf.async_read_enum() |> FieldDescriptorProto_Type::from_enum |> Some
+      (6, _) => msg.type_name = reader |> @protobuf.async_read_string() |> Some
+      (2, _) => msg.extendee = reader |> @protobuf.async_read_string() |> Some
+      (7, _) => msg.default_value = reader |> @protobuf.async_read_string() |> Some
+      (9, _) => msg.oneof_index = reader |> @protobuf.async_read_int32() |> Some
+      (10, _) => msg.json_name = reader |> @protobuf.async_read_string() |> Some
+      (8, _) => msg.options = (reader |> @protobuf.async_read_message() : FieldOptions) |> Some
+      (17, _) => msg.proto3_optional = reader |> @protobuf.async_read_bool() |> Some
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 pub(all) struct OneofDescriptorProto {
   mut name : String?
@@ -2679,29 +2239,13 @@ pub fn OneofDescriptorProto::new(name? : String, options? : OneofOptions) -> One
     options,
   }
 }
-pub  fn[R: @protobuf.Reader] OneofDescriptorProto::read(reader : R) -> OneofDescriptorProto raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  OneofDescriptorProto::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] OneofDescriptorProto::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> OneofDescriptorProto raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for OneofDescriptorProto with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> OneofDescriptorProto raise {
   let msg = OneofDescriptorProto::default()
   try {
     for {
       match (reader |> @protobuf.read_tag()) {
       (1, _) => msg.name = reader |> @protobuf.read_string() |> Some
-      (2, _) => msg.options =   {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      OneofOptions::default()
-    } else {
-      OneofOptions::read_with_limit(reader, limit=len)
-    }
-  } |> Some
+      (2, _) => msg.options = (reader |> @protobuf.read_message() : OneofOptions) |> Some
        (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
@@ -2709,10 +2253,9 @@ pub  fn[R: @protobuf.Reader] OneofDescriptorProto::read_with_limit(reader : @pro
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] OneofDescriptorProto::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for OneofDescriptorProto with write(self: OneofDescriptorProto, writer : &@protobuf.Writer) -> Unit raise {
   match self.name {
     Some(v) => {
       writer |> @protobuf.write_varint(10UL);
@@ -2724,7 +2267,7 @@ pub  fn[W: @protobuf.Writer] OneofDescriptorProto::write(self:Self, writer : W) 
   match self.options {
     Some(v) => {
       writer |> @protobuf.write_varint(18UL);
-      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); @protobuf.Write::write(v, writer)
 
     }
     None => ()
@@ -2756,40 +2299,7 @@ pub impl @json.FromJson for OneofDescriptorProto with from_json(json: Json, path
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] OneofDescriptorProto::async_read(reader : R) -> OneofDescriptorProto raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  OneofDescriptorProto::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] OneofDescriptorProto::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> OneofDescriptorProto raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = OneofDescriptorProto::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.name = reader |> @protobuf.async_read_string() |> Some
-      (2, _) => msg.options =   {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      OneofOptions::default()
-    } else {
-      OneofOptions::async_read_with_limit(reader, limit=len)
-    }
-  } |> Some
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] OneofDescriptorProto::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for OneofDescriptorProto with write(self: OneofDescriptorProto, writer : &@protobuf.AsyncWriter) -> Unit raise {
   match self.name {
     Some(v) => {
       writer |> @protobuf.async_write_varint(10UL);
@@ -2801,11 +2311,27 @@ pub async fn[W: @protobuf.AsyncWriter] OneofDescriptorProto::async_write(self:Se
   match self.options {
     Some(v) => {
       writer |> @protobuf.async_write_varint(18UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); @protobuf.AsyncWrite::write(v, writer)
 
     }
     None => ()
   }
+}
+pub impl @protobuf.AsyncRead for OneofDescriptorProto with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> OneofDescriptorProto raise {
+  let msg = OneofDescriptorProto::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.name = reader |> @protobuf.async_read_string() |> Some
+      (2, _) => msg.options = (reader |> @protobuf.async_read_message() : OneofOptions) |> Some
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 pub(all) struct EnumDescriptorProto_EnumReservedRange {
   mut start : Int?
@@ -2835,16 +2361,7 @@ pub fn EnumDescriptorProto_EnumReservedRange::new(start? : Int, end? : Int) -> E
     end,
   }
 }
-pub  fn[R: @protobuf.Reader] EnumDescriptorProto_EnumReservedRange::read(reader : R) -> EnumDescriptorProto_EnumReservedRange raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  EnumDescriptorProto_EnumReservedRange::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] EnumDescriptorProto_EnumReservedRange::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> EnumDescriptorProto_EnumReservedRange raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for EnumDescriptorProto_EnumReservedRange with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> EnumDescriptorProto_EnumReservedRange raise {
   let msg = EnumDescriptorProto_EnumReservedRange::default()
   try {
     for {
@@ -2858,10 +2375,9 @@ pub  fn[R: @protobuf.Reader] EnumDescriptorProto_EnumReservedRange::read_with_li
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] EnumDescriptorProto_EnumReservedRange::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for EnumDescriptorProto_EnumReservedRange with write(self: EnumDescriptorProto_EnumReservedRange, writer : &@protobuf.Writer) -> Unit raise {
   match self.start {
     Some(v) => {
       writer |> @protobuf.write_varint(8UL);
@@ -2905,33 +2421,7 @@ pub impl @json.FromJson for EnumDescriptorProto_EnumReservedRange with from_json
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] EnumDescriptorProto_EnumReservedRange::async_read(reader : R) -> EnumDescriptorProto_EnumReservedRange raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  EnumDescriptorProto_EnumReservedRange::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] EnumDescriptorProto_EnumReservedRange::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> EnumDescriptorProto_EnumReservedRange raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = EnumDescriptorProto_EnumReservedRange::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.start = reader |> @protobuf.async_read_int32() |> Some
-      (2, _) => msg.end = reader |> @protobuf.async_read_int32() |> Some
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] EnumDescriptorProto_EnumReservedRange::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for EnumDescriptorProto_EnumReservedRange with write(self: EnumDescriptorProto_EnumReservedRange, writer : &@protobuf.AsyncWriter) -> Unit raise {
   match self.start {
     Some(v) => {
       writer |> @protobuf.async_write_varint(8UL);
@@ -2948,6 +2438,22 @@ pub async fn[W: @protobuf.AsyncWriter] EnumDescriptorProto_EnumReservedRange::as
     }
     None => ()
   }
+}
+pub impl @protobuf.AsyncRead for EnumDescriptorProto_EnumReservedRange with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> EnumDescriptorProto_EnumReservedRange raise {
+  let msg = EnumDescriptorProto_EnumReservedRange::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.start = reader |> @protobuf.async_read_int32() |> Some
+      (2, _) => msg.end = reader |> @protobuf.async_read_int32() |> Some
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 pub(all) struct EnumDescriptorProto {
   mut name : String?
@@ -2996,45 +2502,15 @@ pub fn EnumDescriptorProto::new(name? : String, value : Array[EnumValueDescripto
     visibility,
   }
 }
-pub  fn[R: @protobuf.Reader] EnumDescriptorProto::read(reader : R) -> EnumDescriptorProto raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  EnumDescriptorProto::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] EnumDescriptorProto::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> EnumDescriptorProto raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for EnumDescriptorProto with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> EnumDescriptorProto raise {
   let msg = EnumDescriptorProto::default()
   try {
     for {
       match (reader |> @protobuf.read_tag()) {
       (1, _) => msg.name = reader |> @protobuf.read_string() |> Some
-      (2, _) => msg.value.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      EnumValueDescriptorProto::default()
-    } else {
-      EnumValueDescriptorProto::read_with_limit(reader, limit=len)
-    }
-  })
-      (3, _) => msg.options =   {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      EnumOptions::default()
-    } else {
-      EnumOptions::read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (4, _) => msg.reserved_range.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      EnumDescriptorProto_EnumReservedRange::default()
-    } else {
-      EnumDescriptorProto_EnumReservedRange::read_with_limit(reader, limit=len)
-    }
-  })
+      (2, _) => msg.value.push((reader |> @protobuf.read_message() : EnumValueDescriptorProto))
+      (3, _) => msg.options = (reader |> @protobuf.read_message() : EnumOptions) |> Some
+      (4, _) => msg.reserved_range.push((reader |> @protobuf.read_message() : EnumDescriptorProto_EnumReservedRange))
       (5, _) => msg.reserved_name.push(reader |> @protobuf.read_string())
       (6, _) => msg.visibility = reader |> @protobuf.read_enum() |> SymbolVisibility::from_enum |> Some
        (_, wire) => reader |> @protobuf.read_unknown(wire)
@@ -3044,10 +2520,9 @@ pub  fn[R: @protobuf.Reader] EnumDescriptorProto::read_with_limit(reader : @prot
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] EnumDescriptorProto::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for EnumDescriptorProto with write(self: EnumDescriptorProto, writer : &@protobuf.Writer) -> Unit raise {
   match self.name {
     Some(v) => {
       writer |> @protobuf.write_varint(10UL);
@@ -3058,20 +2533,20 @@ pub  fn[W: @protobuf.Writer] EnumDescriptorProto::write(self:Self, writer : W) -
   }
   for item in self.value {
     writer |> @protobuf.write_varint(18UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
   match self.options {
     Some(v) => {
       writer |> @protobuf.write_varint(26UL);
-      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); @protobuf.Write::write(v, writer)
 
     }
     None => ()
   }
   for item in self.reserved_range {
     writer |> @protobuf.write_varint(34UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
   for item in self.reserved_name {
@@ -3134,58 +2609,7 @@ pub impl @json.FromJson for EnumDescriptorProto with from_json(json: Json, path:
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] EnumDescriptorProto::async_read(reader : R) -> EnumDescriptorProto raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  EnumDescriptorProto::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] EnumDescriptorProto::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> EnumDescriptorProto raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = EnumDescriptorProto::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.name = reader |> @protobuf.async_read_string() |> Some
-      (2, _) => msg.value.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      EnumValueDescriptorProto::default()
-    } else {
-      EnumValueDescriptorProto::async_read_with_limit(reader, limit=len)
-    }
-  })
-      (3, _) => msg.options =   {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      EnumOptions::default()
-    } else {
-      EnumOptions::async_read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (4, _) => msg.reserved_range.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      EnumDescriptorProto_EnumReservedRange::default()
-    } else {
-      EnumDescriptorProto_EnumReservedRange::async_read_with_limit(reader, limit=len)
-    }
-  })
-      (5, _) => msg.reserved_name.push(reader |> @protobuf.async_read_string())
-      (6, _) => msg.visibility = reader |> @protobuf.async_read_enum() |> SymbolVisibility::from_enum |> Some
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] EnumDescriptorProto::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for EnumDescriptorProto with write(self: EnumDescriptorProto, writer : &@protobuf.AsyncWriter) -> Unit raise {
   match self.name {
     Some(v) => {
       writer |> @protobuf.async_write_varint(10UL);
@@ -3196,20 +2620,20 @@ pub async fn[W: @protobuf.AsyncWriter] EnumDescriptorProto::async_write(self:Sel
   }
   for item in self.value {
     writer |> @protobuf.async_write_varint(18UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
   match self.options {
     Some(v) => {
       writer |> @protobuf.async_write_varint(26UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); @protobuf.AsyncWrite::write(v, writer)
 
     }
     None => ()
   }
   for item in self.reserved_range {
     writer |> @protobuf.async_write_varint(34UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
   for item in self.reserved_name {
@@ -3225,6 +2649,26 @@ pub async fn[W: @protobuf.AsyncWriter] EnumDescriptorProto::async_write(self:Sel
     }
     None => ()
   }
+}
+pub impl @protobuf.AsyncRead for EnumDescriptorProto with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> EnumDescriptorProto raise {
+  let msg = EnumDescriptorProto::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.name = reader |> @protobuf.async_read_string() |> Some
+      (2, _) => msg.value.push((reader |> @protobuf.async_read_message() : EnumValueDescriptorProto))
+      (3, _) => msg.options = (reader |> @protobuf.async_read_message() : EnumOptions) |> Some
+      (4, _) => msg.reserved_range.push((reader |> @protobuf.async_read_message() : EnumDescriptorProto_EnumReservedRange))
+      (5, _) => msg.reserved_name.push(reader |> @protobuf.async_read_string())
+      (6, _) => msg.visibility = reader |> @protobuf.async_read_enum() |> SymbolVisibility::from_enum |> Some
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 pub(all) struct EnumValueDescriptorProto {
   mut name : String?
@@ -3261,30 +2705,14 @@ pub fn EnumValueDescriptorProto::new(name? : String, number? : Int, options? : E
     options,
   }
 }
-pub  fn[R: @protobuf.Reader] EnumValueDescriptorProto::read(reader : R) -> EnumValueDescriptorProto raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  EnumValueDescriptorProto::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] EnumValueDescriptorProto::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> EnumValueDescriptorProto raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for EnumValueDescriptorProto with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> EnumValueDescriptorProto raise {
   let msg = EnumValueDescriptorProto::default()
   try {
     for {
       match (reader |> @protobuf.read_tag()) {
       (1, _) => msg.name = reader |> @protobuf.read_string() |> Some
       (2, _) => msg.number = reader |> @protobuf.read_int32() |> Some
-      (3, _) => msg.options =   {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      EnumValueOptions::default()
-    } else {
-      EnumValueOptions::read_with_limit(reader, limit=len)
-    }
-  } |> Some
+      (3, _) => msg.options = (reader |> @protobuf.read_message() : EnumValueOptions) |> Some
        (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
@@ -3292,10 +2720,9 @@ pub  fn[R: @protobuf.Reader] EnumValueDescriptorProto::read_with_limit(reader : 
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] EnumValueDescriptorProto::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for EnumValueDescriptorProto with write(self: EnumValueDescriptorProto, writer : &@protobuf.Writer) -> Unit raise {
   match self.name {
     Some(v) => {
       writer |> @protobuf.write_varint(10UL);
@@ -3315,7 +2742,7 @@ pub  fn[W: @protobuf.Writer] EnumValueDescriptorProto::write(self:Self, writer :
   match self.options {
     Some(v) => {
       writer |> @protobuf.write_varint(26UL);
-      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); @protobuf.Write::write(v, writer)
 
     }
     None => ()
@@ -3352,41 +2779,7 @@ pub impl @json.FromJson for EnumValueDescriptorProto with from_json(json: Json, 
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] EnumValueDescriptorProto::async_read(reader : R) -> EnumValueDescriptorProto raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  EnumValueDescriptorProto::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] EnumValueDescriptorProto::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> EnumValueDescriptorProto raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = EnumValueDescriptorProto::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.name = reader |> @protobuf.async_read_string() |> Some
-      (2, _) => msg.number = reader |> @protobuf.async_read_int32() |> Some
-      (3, _) => msg.options =   {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      EnumValueOptions::default()
-    } else {
-      EnumValueOptions::async_read_with_limit(reader, limit=len)
-    }
-  } |> Some
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] EnumValueDescriptorProto::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for EnumValueDescriptorProto with write(self: EnumValueDescriptorProto, writer : &@protobuf.AsyncWriter) -> Unit raise {
   match self.name {
     Some(v) => {
       writer |> @protobuf.async_write_varint(10UL);
@@ -3406,11 +2799,28 @@ pub async fn[W: @protobuf.AsyncWriter] EnumValueDescriptorProto::async_write(sel
   match self.options {
     Some(v) => {
       writer |> @protobuf.async_write_varint(26UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); @protobuf.AsyncWrite::write(v, writer)
 
     }
     None => ()
   }
+}
+pub impl @protobuf.AsyncRead for EnumValueDescriptorProto with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> EnumValueDescriptorProto raise {
+  let msg = EnumValueDescriptorProto::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.name = reader |> @protobuf.async_read_string() |> Some
+      (2, _) => msg.number = reader |> @protobuf.async_read_int32() |> Some
+      (3, _) => msg.options = (reader |> @protobuf.async_read_message() : EnumValueOptions) |> Some
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 pub(all) struct ServiceDescriptorProto {
   mut name : String?
@@ -3444,37 +2854,14 @@ pub fn ServiceDescriptorProto::new(name? : String, method_ : Array[MethodDescrip
     options,
   }
 }
-pub  fn[R: @protobuf.Reader] ServiceDescriptorProto::read(reader : R) -> ServiceDescriptorProto raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  ServiceDescriptorProto::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] ServiceDescriptorProto::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> ServiceDescriptorProto raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for ServiceDescriptorProto with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> ServiceDescriptorProto raise {
   let msg = ServiceDescriptorProto::default()
   try {
     for {
       match (reader |> @protobuf.read_tag()) {
       (1, _) => msg.name = reader |> @protobuf.read_string() |> Some
-      (2, _) => msg.method_.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      MethodDescriptorProto::default()
-    } else {
-      MethodDescriptorProto::read_with_limit(reader, limit=len)
-    }
-  })
-      (3, _) => msg.options =   {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      ServiceOptions::default()
-    } else {
-      ServiceOptions::read_with_limit(reader, limit=len)
-    }
-  } |> Some
+      (2, _) => msg.method_.push((reader |> @protobuf.read_message() : MethodDescriptorProto))
+      (3, _) => msg.options = (reader |> @protobuf.read_message() : ServiceOptions) |> Some
        (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
@@ -3482,10 +2869,9 @@ pub  fn[R: @protobuf.Reader] ServiceDescriptorProto::read_with_limit(reader : @p
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] ServiceDescriptorProto::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for ServiceDescriptorProto with write(self: ServiceDescriptorProto, writer : &@protobuf.Writer) -> Unit raise {
   match self.name {
     Some(v) => {
       writer |> @protobuf.write_varint(10UL);
@@ -3496,13 +2882,13 @@ pub  fn[W: @protobuf.Writer] ServiceDescriptorProto::write(self:Self, writer : W
   }
   for item in self.method_ {
     writer |> @protobuf.write_varint(18UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
   match self.options {
     Some(v) => {
       writer |> @protobuf.write_varint(26UL);
-      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); @protobuf.Write::write(v, writer)
 
     }
     None => ()
@@ -3539,48 +2925,7 @@ pub impl @json.FromJson for ServiceDescriptorProto with from_json(json: Json, pa
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] ServiceDescriptorProto::async_read(reader : R) -> ServiceDescriptorProto raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  ServiceDescriptorProto::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] ServiceDescriptorProto::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> ServiceDescriptorProto raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = ServiceDescriptorProto::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.name = reader |> @protobuf.async_read_string() |> Some
-      (2, _) => msg.method_.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      MethodDescriptorProto::default()
-    } else {
-      MethodDescriptorProto::async_read_with_limit(reader, limit=len)
-    }
-  })
-      (3, _) => msg.options =   {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      ServiceOptions::default()
-    } else {
-      ServiceOptions::async_read_with_limit(reader, limit=len)
-    }
-  } |> Some
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] ServiceDescriptorProto::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for ServiceDescriptorProto with write(self: ServiceDescriptorProto, writer : &@protobuf.AsyncWriter) -> Unit raise {
   match self.name {
     Some(v) => {
       writer |> @protobuf.async_write_varint(10UL);
@@ -3591,17 +2936,34 @@ pub async fn[W: @protobuf.AsyncWriter] ServiceDescriptorProto::async_write(self:
   }
   for item in self.method_ {
     writer |> @protobuf.async_write_varint(18UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
   match self.options {
     Some(v) => {
       writer |> @protobuf.async_write_varint(26UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); @protobuf.AsyncWrite::write(v, writer)
 
     }
     None => ()
   }
+}
+pub impl @protobuf.AsyncRead for ServiceDescriptorProto with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> ServiceDescriptorProto raise {
+  let msg = ServiceDescriptorProto::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.name = reader |> @protobuf.async_read_string() |> Some
+      (2, _) => msg.method_.push((reader |> @protobuf.async_read_message() : MethodDescriptorProto))
+      (3, _) => msg.options = (reader |> @protobuf.async_read_message() : ServiceOptions) |> Some
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 pub(all) struct MethodDescriptorProto {
   mut name : String?
@@ -3659,16 +3021,7 @@ pub fn MethodDescriptorProto::new(name? : String, input_type? : String, output_t
     server_streaming,
   }
 }
-pub  fn[R: @protobuf.Reader] MethodDescriptorProto::read(reader : R) -> MethodDescriptorProto raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  MethodDescriptorProto::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] MethodDescriptorProto::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> MethodDescriptorProto raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for MethodDescriptorProto with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> MethodDescriptorProto raise {
   let msg = MethodDescriptorProto::default()
   try {
     for {
@@ -3676,14 +3029,7 @@ pub  fn[R: @protobuf.Reader] MethodDescriptorProto::read_with_limit(reader : @pr
       (1, _) => msg.name = reader |> @protobuf.read_string() |> Some
       (2, _) => msg.input_type = reader |> @protobuf.read_string() |> Some
       (3, _) => msg.output_type = reader |> @protobuf.read_string() |> Some
-      (4, _) => msg.options =   {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      MethodOptions::default()
-    } else {
-      MethodOptions::read_with_limit(reader, limit=len)
-    }
-  } |> Some
+      (4, _) => msg.options = (reader |> @protobuf.read_message() : MethodOptions) |> Some
       (5, _) => msg.client_streaming = reader |> @protobuf.read_bool() |> Some
       (6, _) => msg.server_streaming = reader |> @protobuf.read_bool() |> Some
        (_, wire) => reader |> @protobuf.read_unknown(wire)
@@ -3693,10 +3039,9 @@ pub  fn[R: @protobuf.Reader] MethodDescriptorProto::read_with_limit(reader : @pr
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] MethodDescriptorProto::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for MethodDescriptorProto with write(self: MethodDescriptorProto, writer : &@protobuf.Writer) -> Unit raise {
   match self.name {
     Some(v) => {
       writer |> @protobuf.write_varint(10UL);
@@ -3724,7 +3069,7 @@ pub  fn[W: @protobuf.Writer] MethodDescriptorProto::write(self:Self, writer : W)
   match self.options {
     Some(v) => {
       writer |> @protobuf.write_varint(34UL);
-      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); @protobuf.Write::write(v, writer)
 
     }
     None => ()
@@ -3792,44 +3137,7 @@ pub impl @json.FromJson for MethodDescriptorProto with from_json(json: Json, pat
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] MethodDescriptorProto::async_read(reader : R) -> MethodDescriptorProto raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  MethodDescriptorProto::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] MethodDescriptorProto::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> MethodDescriptorProto raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = MethodDescriptorProto::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.name = reader |> @protobuf.async_read_string() |> Some
-      (2, _) => msg.input_type = reader |> @protobuf.async_read_string() |> Some
-      (3, _) => msg.output_type = reader |> @protobuf.async_read_string() |> Some
-      (4, _) => msg.options =   {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      MethodOptions::default()
-    } else {
-      MethodOptions::async_read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (5, _) => msg.client_streaming = reader |> @protobuf.async_read_bool() |> Some
-      (6, _) => msg.server_streaming = reader |> @protobuf.async_read_bool() |> Some
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] MethodDescriptorProto::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for MethodDescriptorProto with write(self: MethodDescriptorProto, writer : &@protobuf.AsyncWriter) -> Unit raise {
   match self.name {
     Some(v) => {
       writer |> @protobuf.async_write_varint(10UL);
@@ -3857,7 +3165,7 @@ pub async fn[W: @protobuf.AsyncWriter] MethodDescriptorProto::async_write(self:S
   match self.options {
     Some(v) => {
       writer |> @protobuf.async_write_varint(34UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); @protobuf.AsyncWrite::write(v, writer)
 
     }
     None => ()
@@ -3878,6 +3186,26 @@ pub async fn[W: @protobuf.AsyncWriter] MethodDescriptorProto::async_write(self:S
     }
     None => ()
   }
+}
+pub impl @protobuf.AsyncRead for MethodDescriptorProto with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> MethodDescriptorProto raise {
+  let msg = MethodDescriptorProto::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.name = reader |> @protobuf.async_read_string() |> Some
+      (2, _) => msg.input_type = reader |> @protobuf.async_read_string() |> Some
+      (3, _) => msg.output_type = reader |> @protobuf.async_read_string() |> Some
+      (4, _) => msg.options = (reader |> @protobuf.async_read_message() : MethodOptions) |> Some
+      (5, _) => msg.client_streaming = reader |> @protobuf.async_read_bool() |> Some
+      (6, _) => msg.server_streaming = reader |> @protobuf.async_read_bool() |> Some
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 pub(all) enum FileOptions_OptimizeMode {
   SPEED
@@ -4081,16 +3409,7 @@ pub fn FileOptions::new(java_package? : String, java_outer_classname? : String, 
     uninterpreted_option,
   }
 }
-pub  fn[R: @protobuf.Reader] FileOptions::read(reader : R) -> FileOptions raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FileOptions::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] FileOptions::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> FileOptions raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for FileOptions with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> FileOptions raise {
   let msg = FileOptions::default()
   try {
     for {
@@ -4114,22 +3433,8 @@ pub  fn[R: @protobuf.Reader] FileOptions::read_with_limit(reader : @protobuf.Lim
       (41, _) => msg.php_namespace = reader |> @protobuf.read_string() |> Some
       (44, _) => msg.php_metadata_namespace = reader |> @protobuf.read_string() |> Some
       (45, _) => msg.ruby_package = reader |> @protobuf.read_string() |> Some
-      (50, _) => msg.features =   {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      FeatureSet::default()
-    } else {
-      FeatureSet::read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (999, _) => msg.uninterpreted_option.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      UninterpretedOption::default()
-    } else {
-      UninterpretedOption::read_with_limit(reader, limit=len)
-    }
-  })
+      (50, _) => msg.features = (reader |> @protobuf.read_message() : FeatureSet) |> Some
+      (999, _) => msg.uninterpreted_option.push((reader |> @protobuf.read_message() : UninterpretedOption))
        (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
@@ -4137,10 +3442,9 @@ pub  fn[R: @protobuf.Reader] FileOptions::read_with_limit(reader : @protobuf.Lim
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] FileOptions::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for FileOptions with write(self: FileOptions, writer : &@protobuf.Writer) -> Unit raise {
   match self.java_package {
     Some(v) => {
       writer |> @protobuf.write_varint(10UL);
@@ -4296,14 +3600,14 @@ pub  fn[W: @protobuf.Writer] FileOptions::write(self:Self, writer : W) -> Unit r
   match self.features {
     Some(v) => {
       writer |> @protobuf.write_varint(402UL);
-      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); @protobuf.Write::write(v, writer)
 
     }
     None => ()
   }
   for item in self.uninterpreted_option {
     writer |> @protobuf.write_varint(7994UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
 }
@@ -4428,66 +3732,7 @@ pub impl @json.FromJson for FileOptions with from_json(json: Json, path: @json.J
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] FileOptions::async_read(reader : R) -> FileOptions raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FileOptions::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] FileOptions::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> FileOptions raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = FileOptions::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.java_package = reader |> @protobuf.async_read_string() |> Some
-      (8, _) => msg.java_outer_classname = reader |> @protobuf.async_read_string() |> Some
-      (10, _) => msg.java_multiple_files = reader |> @protobuf.async_read_bool() |> Some
-      (20, _) => msg.java_generate_equals_and_hash = reader |> @protobuf.async_read_bool() |> Some
-      (27, _) => msg.java_string_check_utf8 = reader |> @protobuf.async_read_bool() |> Some
-      (9, _) => msg.optimize_for = reader |> @protobuf.async_read_enum() |> FileOptions_OptimizeMode::from_enum |> Some
-      (11, _) => msg.go_package = reader |> @protobuf.async_read_string() |> Some
-      (16, _) => msg.cc_generic_services = reader |> @protobuf.async_read_bool() |> Some
-      (17, _) => msg.java_generic_services = reader |> @protobuf.async_read_bool() |> Some
-      (18, _) => msg.py_generic_services = reader |> @protobuf.async_read_bool() |> Some
-      (23, _) => msg.deprecated = reader |> @protobuf.async_read_bool() |> Some
-      (31, _) => msg.cc_enable_arenas = reader |> @protobuf.async_read_bool() |> Some
-      (36, _) => msg.objc_class_prefix = reader |> @protobuf.async_read_string() |> Some
-      (37, _) => msg.csharp_namespace = reader |> @protobuf.async_read_string() |> Some
-      (39, _) => msg.swift_prefix = reader |> @protobuf.async_read_string() |> Some
-      (40, _) => msg.php_class_prefix = reader |> @protobuf.async_read_string() |> Some
-      (41, _) => msg.php_namespace = reader |> @protobuf.async_read_string() |> Some
-      (44, _) => msg.php_metadata_namespace = reader |> @protobuf.async_read_string() |> Some
-      (45, _) => msg.ruby_package = reader |> @protobuf.async_read_string() |> Some
-      (50, _) => msg.features =   {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      FeatureSet::default()
-    } else {
-      FeatureSet::async_read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (999, _) => msg.uninterpreted_option.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      UninterpretedOption::default()
-    } else {
-      UninterpretedOption::async_read_with_limit(reader, limit=len)
-    }
-  })
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] FileOptions::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for FileOptions with write(self: FileOptions, writer : &@protobuf.AsyncWriter) -> Unit raise {
   match self.java_package {
     Some(v) => {
       writer |> @protobuf.async_write_varint(10UL);
@@ -4643,16 +3888,51 @@ pub async fn[W: @protobuf.AsyncWriter] FileOptions::async_write(self:Self, write
   match self.features {
     Some(v) => {
       writer |> @protobuf.async_write_varint(402UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); @protobuf.AsyncWrite::write(v, writer)
 
     }
     None => ()
   }
   for item in self.uninterpreted_option {
     writer |> @protobuf.async_write_varint(7994UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
+}
+pub impl @protobuf.AsyncRead for FileOptions with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> FileOptions raise {
+  let msg = FileOptions::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.java_package = reader |> @protobuf.async_read_string() |> Some
+      (8, _) => msg.java_outer_classname = reader |> @protobuf.async_read_string() |> Some
+      (10, _) => msg.java_multiple_files = reader |> @protobuf.async_read_bool() |> Some
+      (20, _) => msg.java_generate_equals_and_hash = reader |> @protobuf.async_read_bool() |> Some
+      (27, _) => msg.java_string_check_utf8 = reader |> @protobuf.async_read_bool() |> Some
+      (9, _) => msg.optimize_for = reader |> @protobuf.async_read_enum() |> FileOptions_OptimizeMode::from_enum |> Some
+      (11, _) => msg.go_package = reader |> @protobuf.async_read_string() |> Some
+      (16, _) => msg.cc_generic_services = reader |> @protobuf.async_read_bool() |> Some
+      (17, _) => msg.java_generic_services = reader |> @protobuf.async_read_bool() |> Some
+      (18, _) => msg.py_generic_services = reader |> @protobuf.async_read_bool() |> Some
+      (23, _) => msg.deprecated = reader |> @protobuf.async_read_bool() |> Some
+      (31, _) => msg.cc_enable_arenas = reader |> @protobuf.async_read_bool() |> Some
+      (36, _) => msg.objc_class_prefix = reader |> @protobuf.async_read_string() |> Some
+      (37, _) => msg.csharp_namespace = reader |> @protobuf.async_read_string() |> Some
+      (39, _) => msg.swift_prefix = reader |> @protobuf.async_read_string() |> Some
+      (40, _) => msg.php_class_prefix = reader |> @protobuf.async_read_string() |> Some
+      (41, _) => msg.php_namespace = reader |> @protobuf.async_read_string() |> Some
+      (44, _) => msg.php_metadata_namespace = reader |> @protobuf.async_read_string() |> Some
+      (45, _) => msg.ruby_package = reader |> @protobuf.async_read_string() |> Some
+      (50, _) => msg.features = (reader |> @protobuf.async_read_message() : FeatureSet) |> Some
+      (999, _) => msg.uninterpreted_option.push((reader |> @protobuf.async_read_message() : UninterpretedOption))
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 pub(all) struct MessageOptions {
   mut message_set_wire_format : Bool?
@@ -4714,16 +3994,7 @@ pub fn MessageOptions::new(message_set_wire_format? : Bool, no_standard_descript
     uninterpreted_option,
   }
 }
-pub  fn[R: @protobuf.Reader] MessageOptions::read(reader : R) -> MessageOptions raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  MessageOptions::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] MessageOptions::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> MessageOptions raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for MessageOptions with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> MessageOptions raise {
   let msg = MessageOptions::default()
   try {
     for {
@@ -4733,22 +4004,8 @@ pub  fn[R: @protobuf.Reader] MessageOptions::read_with_limit(reader : @protobuf.
       (3, _) => msg.deprecated = reader |> @protobuf.read_bool() |> Some
       (7, _) => msg.map_entry = reader |> @protobuf.read_bool() |> Some
       (11, _) => msg.deprecated_legacy_json_field_conflicts = reader |> @protobuf.read_bool() |> Some
-      (12, _) => msg.features =   {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      FeatureSet::default()
-    } else {
-      FeatureSet::read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (999, _) => msg.uninterpreted_option.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      UninterpretedOption::default()
-    } else {
-      UninterpretedOption::read_with_limit(reader, limit=len)
-    }
-  })
+      (12, _) => msg.features = (reader |> @protobuf.read_message() : FeatureSet) |> Some
+      (999, _) => msg.uninterpreted_option.push((reader |> @protobuf.read_message() : UninterpretedOption))
        (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
@@ -4756,10 +4013,9 @@ pub  fn[R: @protobuf.Reader] MessageOptions::read_with_limit(reader : @protobuf.
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] MessageOptions::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for MessageOptions with write(self: MessageOptions, writer : &@protobuf.Writer) -> Unit raise {
   match self.message_set_wire_format {
     Some(v) => {
       writer |> @protobuf.write_varint(8UL);
@@ -4803,14 +4059,14 @@ pub  fn[W: @protobuf.Writer] MessageOptions::write(self:Self, writer : W) -> Uni
   match self.features {
     Some(v) => {
       writer |> @protobuf.write_varint(98UL);
-      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); @protobuf.Write::write(v, writer)
 
     }
     None => ()
   }
   for item in self.uninterpreted_option {
     writer |> @protobuf.write_varint(7994UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
 }
@@ -4865,52 +4121,7 @@ pub impl @json.FromJson for MessageOptions with from_json(json: Json, path: @jso
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] MessageOptions::async_read(reader : R) -> MessageOptions raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  MessageOptions::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] MessageOptions::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> MessageOptions raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = MessageOptions::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.message_set_wire_format = reader |> @protobuf.async_read_bool() |> Some
-      (2, _) => msg.no_standard_descriptor_accessor = reader |> @protobuf.async_read_bool() |> Some
-      (3, _) => msg.deprecated = reader |> @protobuf.async_read_bool() |> Some
-      (7, _) => msg.map_entry = reader |> @protobuf.async_read_bool() |> Some
-      (11, _) => msg.deprecated_legacy_json_field_conflicts = reader |> @protobuf.async_read_bool() |> Some
-      (12, _) => msg.features =   {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      FeatureSet::default()
-    } else {
-      FeatureSet::async_read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (999, _) => msg.uninterpreted_option.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      UninterpretedOption::default()
-    } else {
-      UninterpretedOption::async_read_with_limit(reader, limit=len)
-    }
-  })
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] MessageOptions::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for MessageOptions with write(self: MessageOptions, writer : &@protobuf.AsyncWriter) -> Unit raise {
   match self.message_set_wire_format {
     Some(v) => {
       writer |> @protobuf.async_write_varint(8UL);
@@ -4954,16 +4165,37 @@ pub async fn[W: @protobuf.AsyncWriter] MessageOptions::async_write(self:Self, wr
   match self.features {
     Some(v) => {
       writer |> @protobuf.async_write_varint(98UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); @protobuf.AsyncWrite::write(v, writer)
 
     }
     None => ()
   }
   for item in self.uninterpreted_option {
     writer |> @protobuf.async_write_varint(7994UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
+}
+pub impl @protobuf.AsyncRead for MessageOptions with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> MessageOptions raise {
+  let msg = MessageOptions::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.message_set_wire_format = reader |> @protobuf.async_read_bool() |> Some
+      (2, _) => msg.no_standard_descriptor_accessor = reader |> @protobuf.async_read_bool() |> Some
+      (3, _) => msg.deprecated = reader |> @protobuf.async_read_bool() |> Some
+      (7, _) => msg.map_entry = reader |> @protobuf.async_read_bool() |> Some
+      (11, _) => msg.deprecated_legacy_json_field_conflicts = reader |> @protobuf.async_read_bool() |> Some
+      (12, _) => msg.features = (reader |> @protobuf.async_read_message() : FeatureSet) |> Some
+      (999, _) => msg.uninterpreted_option.push((reader |> @protobuf.async_read_message() : UninterpretedOption))
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 pub(all) enum FieldOptions_CType {
   STRING
@@ -5211,16 +4443,7 @@ pub fn FieldOptions_EditionDefault::new(edition? : Edition, value? : String) -> 
     value,
   }
 }
-pub  fn[R: @protobuf.Reader] FieldOptions_EditionDefault::read(reader : R) -> FieldOptions_EditionDefault raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FieldOptions_EditionDefault::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] FieldOptions_EditionDefault::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> FieldOptions_EditionDefault raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for FieldOptions_EditionDefault with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> FieldOptions_EditionDefault raise {
   let msg = FieldOptions_EditionDefault::default()
   try {
     for {
@@ -5234,10 +4457,9 @@ pub  fn[R: @protobuf.Reader] FieldOptions_EditionDefault::read_with_limit(reader
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] FieldOptions_EditionDefault::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for FieldOptions_EditionDefault with write(self: FieldOptions_EditionDefault, writer : &@protobuf.Writer) -> Unit raise {
   match self.edition {
     Some(v) => {
       writer |> @protobuf.write_varint(24UL);
@@ -5281,33 +4503,7 @@ pub impl @json.FromJson for FieldOptions_EditionDefault with from_json(json: Jso
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] FieldOptions_EditionDefault::async_read(reader : R) -> FieldOptions_EditionDefault raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FieldOptions_EditionDefault::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] FieldOptions_EditionDefault::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> FieldOptions_EditionDefault raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = FieldOptions_EditionDefault::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (3, _) => msg.edition = reader |> @protobuf.async_read_enum() |> Edition::from_enum |> Some
-      (2, _) => msg.value = reader |> @protobuf.async_read_string() |> Some
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] FieldOptions_EditionDefault::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for FieldOptions_EditionDefault with write(self: FieldOptions_EditionDefault, writer : &@protobuf.AsyncWriter) -> Unit raise {
   match self.edition {
     Some(v) => {
       writer |> @protobuf.async_write_varint(24UL);
@@ -5324,6 +4520,22 @@ pub async fn[W: @protobuf.AsyncWriter] FieldOptions_EditionDefault::async_write(
     }
     None => ()
   }
+}
+pub impl @protobuf.AsyncRead for FieldOptions_EditionDefault with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> FieldOptions_EditionDefault raise {
+  let msg = FieldOptions_EditionDefault::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (3, _) => msg.edition = reader |> @protobuf.async_read_enum() |> Edition::from_enum |> Some
+      (2, _) => msg.value = reader |> @protobuf.async_read_string() |> Some
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 pub(all) struct FieldOptions_FeatureSupport {
   mut edition_introduced : Edition?
@@ -5367,16 +4579,7 @@ pub fn FieldOptions_FeatureSupport::new(edition_introduced? : Edition, edition_d
     edition_removed,
   }
 }
-pub  fn[R: @protobuf.Reader] FieldOptions_FeatureSupport::read(reader : R) -> FieldOptions_FeatureSupport raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FieldOptions_FeatureSupport::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] FieldOptions_FeatureSupport::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> FieldOptions_FeatureSupport raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for FieldOptions_FeatureSupport with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> FieldOptions_FeatureSupport raise {
   let msg = FieldOptions_FeatureSupport::default()
   try {
     for {
@@ -5392,10 +4595,9 @@ pub  fn[R: @protobuf.Reader] FieldOptions_FeatureSupport::read_with_limit(reader
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] FieldOptions_FeatureSupport::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for FieldOptions_FeatureSupport with write(self: FieldOptions_FeatureSupport, writer : &@protobuf.Writer) -> Unit raise {
   match self.edition_introduced {
     Some(v) => {
       writer |> @protobuf.write_varint(8UL);
@@ -5465,35 +4667,7 @@ pub impl @json.FromJson for FieldOptions_FeatureSupport with from_json(json: Jso
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] FieldOptions_FeatureSupport::async_read(reader : R) -> FieldOptions_FeatureSupport raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FieldOptions_FeatureSupport::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] FieldOptions_FeatureSupport::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> FieldOptions_FeatureSupport raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = FieldOptions_FeatureSupport::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.edition_introduced = reader |> @protobuf.async_read_enum() |> Edition::from_enum |> Some
-      (2, _) => msg.edition_deprecated = reader |> @protobuf.async_read_enum() |> Edition::from_enum |> Some
-      (3, _) => msg.deprecation_warning = reader |> @protobuf.async_read_string() |> Some
-      (4, _) => msg.edition_removed = reader |> @protobuf.async_read_enum() |> Edition::from_enum |> Some
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] FieldOptions_FeatureSupport::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for FieldOptions_FeatureSupport with write(self: FieldOptions_FeatureSupport, writer : &@protobuf.AsyncWriter) -> Unit raise {
   match self.edition_introduced {
     Some(v) => {
       writer |> @protobuf.async_write_varint(8UL);
@@ -5526,6 +4700,24 @@ pub async fn[W: @protobuf.AsyncWriter] FieldOptions_FeatureSupport::async_write(
     }
     None => ()
   }
+}
+pub impl @protobuf.AsyncRead for FieldOptions_FeatureSupport with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> FieldOptions_FeatureSupport raise {
+  let msg = FieldOptions_FeatureSupport::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.edition_introduced = reader |> @protobuf.async_read_enum() |> Edition::from_enum |> Some
+      (2, _) => msg.edition_deprecated = reader |> @protobuf.async_read_enum() |> Edition::from_enum |> Some
+      (3, _) => msg.deprecation_warning = reader |> @protobuf.async_read_string() |> Some
+      (4, _) => msg.edition_removed = reader |> @protobuf.async_read_enum() |> Edition::from_enum |> Some
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 pub(all) struct FieldOptions {
   mut ctype : FieldOptions_CType?
@@ -5630,16 +4822,7 @@ pub fn FieldOptions::new(ctype? : FieldOptions_CType, packed? : Bool, jstype? : 
     uninterpreted_option,
   }
 }
-pub  fn[R: @protobuf.Reader] FieldOptions::read(reader : R) -> FieldOptions raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FieldOptions::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] FieldOptions::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> FieldOptions raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for FieldOptions with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> FieldOptions raise {
   let msg = FieldOptions::default()
   try {
     for {
@@ -5654,38 +4837,10 @@ pub  fn[R: @protobuf.Reader] FieldOptions::read_with_limit(reader : @protobuf.Li
       (16, _) => msg.debug_redact = reader |> @protobuf.read_bool() |> Some
       (17, _) => msg.retention = reader |> @protobuf.read_enum() |> FieldOptions_OptionRetention::from_enum |> Some
       (19, _) => msg.targets.push(reader |> @protobuf.read_enum() |> FieldOptions_OptionTargetType::from_enum)
-      (20, _) => msg.edition_defaults.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      FieldOptions_EditionDefault::default()
-    } else {
-      FieldOptions_EditionDefault::read_with_limit(reader, limit=len)
-    }
-  })
-      (21, _) => msg.features =   {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      FeatureSet::default()
-    } else {
-      FeatureSet::read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (22, _) => msg.feature_support =   {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      FieldOptions_FeatureSupport::default()
-    } else {
-      FieldOptions_FeatureSupport::read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (999, _) => msg.uninterpreted_option.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      UninterpretedOption::default()
-    } else {
-      UninterpretedOption::read_with_limit(reader, limit=len)
-    }
-  })
+      (20, _) => msg.edition_defaults.push((reader |> @protobuf.read_message() : FieldOptions_EditionDefault))
+      (21, _) => msg.features = (reader |> @protobuf.read_message() : FeatureSet) |> Some
+      (22, _) => msg.feature_support = (reader |> @protobuf.read_message() : FieldOptions_FeatureSupport) |> Some
+      (999, _) => msg.uninterpreted_option.push((reader |> @protobuf.read_message() : UninterpretedOption))
        (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
@@ -5693,10 +4848,9 @@ pub  fn[R: @protobuf.Reader] FieldOptions::read_with_limit(reader : @protobuf.Li
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] FieldOptions::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for FieldOptions with write(self: FieldOptions, writer : &@protobuf.Writer) -> Unit raise {
   match self.ctype {
     Some(v) => {
       writer |> @protobuf.write_varint(8UL);
@@ -5776,13 +4930,13 @@ pub  fn[W: @protobuf.Writer] FieldOptions::write(self:Self, writer : W) -> Unit 
   }
   for item in self.edition_defaults {
     writer |> @protobuf.write_varint(162UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
   match self.features {
     Some(v) => {
       writer |> @protobuf.write_varint(170UL);
-      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); @protobuf.Write::write(v, writer)
 
     }
     None => ()
@@ -5790,14 +4944,14 @@ pub  fn[W: @protobuf.Writer] FieldOptions::write(self:Self, writer : W) -> Unit 
   match self.feature_support {
     Some(v) => {
       writer |> @protobuf.write_varint(178UL);
-      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); @protobuf.Write::write(v, writer)
 
     }
     None => ()
   }
   for item in self.uninterpreted_option {
     writer |> @protobuf.write_varint(7994UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
 }
@@ -5887,73 +5041,7 @@ pub impl @json.FromJson for FieldOptions with from_json(json: Json, path: @json.
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] FieldOptions::async_read(reader : R) -> FieldOptions raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FieldOptions::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] FieldOptions::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> FieldOptions raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = FieldOptions::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.ctype = reader |> @protobuf.async_read_enum() |> FieldOptions_CType::from_enum |> Some
-      (2, _) => msg.packed = reader |> @protobuf.async_read_bool() |> Some
-      (6, _) => msg.jstype = reader |> @protobuf.async_read_enum() |> FieldOptions_JSType::from_enum |> Some
-      (5, _) => msg.lazy_ = reader |> @protobuf.async_read_bool() |> Some
-      (15, _) => msg.unverified_lazy = reader |> @protobuf.async_read_bool() |> Some
-      (3, _) => msg.deprecated = reader |> @protobuf.async_read_bool() |> Some
-      (10, _) => msg.weak = reader |> @protobuf.async_read_bool() |> Some
-      (16, _) => msg.debug_redact = reader |> @protobuf.async_read_bool() |> Some
-      (17, _) => msg.retention = reader |> @protobuf.async_read_enum() |> FieldOptions_OptionRetention::from_enum |> Some
-      (19, _) => msg.targets.push(reader |> @protobuf.async_read_enum() |> FieldOptions_OptionTargetType::from_enum)
-      (20, _) => msg.edition_defaults.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      FieldOptions_EditionDefault::default()
-    } else {
-      FieldOptions_EditionDefault::async_read_with_limit(reader, limit=len)
-    }
-  })
-      (21, _) => msg.features =   {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      FeatureSet::default()
-    } else {
-      FeatureSet::async_read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (22, _) => msg.feature_support =   {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      FieldOptions_FeatureSupport::default()
-    } else {
-      FieldOptions_FeatureSupport::async_read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (999, _) => msg.uninterpreted_option.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      UninterpretedOption::default()
-    } else {
-      UninterpretedOption::async_read_with_limit(reader, limit=len)
-    }
-  })
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] FieldOptions::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for FieldOptions with write(self: FieldOptions, writer : &@protobuf.AsyncWriter) -> Unit raise {
   match self.ctype {
     Some(v) => {
       writer |> @protobuf.async_write_varint(8UL);
@@ -6033,13 +5121,13 @@ pub async fn[W: @protobuf.AsyncWriter] FieldOptions::async_write(self:Self, writ
   }
   for item in self.edition_defaults {
     writer |> @protobuf.async_write_varint(162UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
   match self.features {
     Some(v) => {
       writer |> @protobuf.async_write_varint(170UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); @protobuf.AsyncWrite::write(v, writer)
 
     }
     None => ()
@@ -6047,16 +5135,44 @@ pub async fn[W: @protobuf.AsyncWriter] FieldOptions::async_write(self:Self, writ
   match self.feature_support {
     Some(v) => {
       writer |> @protobuf.async_write_varint(178UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); @protobuf.AsyncWrite::write(v, writer)
 
     }
     None => ()
   }
   for item in self.uninterpreted_option {
     writer |> @protobuf.async_write_varint(7994UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
+}
+pub impl @protobuf.AsyncRead for FieldOptions with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> FieldOptions raise {
+  let msg = FieldOptions::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.ctype = reader |> @protobuf.async_read_enum() |> FieldOptions_CType::from_enum |> Some
+      (2, _) => msg.packed = reader |> @protobuf.async_read_bool() |> Some
+      (6, _) => msg.jstype = reader |> @protobuf.async_read_enum() |> FieldOptions_JSType::from_enum |> Some
+      (5, _) => msg.lazy_ = reader |> @protobuf.async_read_bool() |> Some
+      (15, _) => msg.unverified_lazy = reader |> @protobuf.async_read_bool() |> Some
+      (3, _) => msg.deprecated = reader |> @protobuf.async_read_bool() |> Some
+      (10, _) => msg.weak = reader |> @protobuf.async_read_bool() |> Some
+      (16, _) => msg.debug_redact = reader |> @protobuf.async_read_bool() |> Some
+      (17, _) => msg.retention = reader |> @protobuf.async_read_enum() |> FieldOptions_OptionRetention::from_enum |> Some
+      (19, _) => msg.targets.push(reader |> @protobuf.async_read_enum() |> FieldOptions_OptionTargetType::from_enum)
+      (20, _) => msg.edition_defaults.push((reader |> @protobuf.async_read_message() : FieldOptions_EditionDefault))
+      (21, _) => msg.features = (reader |> @protobuf.async_read_message() : FeatureSet) |> Some
+      (22, _) => msg.feature_support = (reader |> @protobuf.async_read_message() : FieldOptions_FeatureSupport) |> Some
+      (999, _) => msg.uninterpreted_option.push((reader |> @protobuf.async_read_message() : UninterpretedOption))
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 pub(all) struct OneofOptions {
   mut features : FeatureSet?
@@ -6083,36 +5199,13 @@ pub fn OneofOptions::new(features? : FeatureSet, uninterpreted_option : Array[Un
     uninterpreted_option,
   }
 }
-pub  fn[R: @protobuf.Reader] OneofOptions::read(reader : R) -> OneofOptions raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  OneofOptions::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] OneofOptions::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> OneofOptions raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for OneofOptions with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> OneofOptions raise {
   let msg = OneofOptions::default()
   try {
     for {
       match (reader |> @protobuf.read_tag()) {
-      (1, _) => msg.features =   {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      FeatureSet::default()
-    } else {
-      FeatureSet::read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (999, _) => msg.uninterpreted_option.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      UninterpretedOption::default()
-    } else {
-      UninterpretedOption::read_with_limit(reader, limit=len)
-    }
-  })
+      (1, _) => msg.features = (reader |> @protobuf.read_message() : FeatureSet) |> Some
+      (999, _) => msg.uninterpreted_option.push((reader |> @protobuf.read_message() : UninterpretedOption))
        (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
@@ -6120,21 +5213,20 @@ pub  fn[R: @protobuf.Reader] OneofOptions::read_with_limit(reader : @protobuf.Li
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] OneofOptions::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for OneofOptions with write(self: OneofOptions, writer : &@protobuf.Writer) -> Unit raise {
   match self.features {
     Some(v) => {
       writer |> @protobuf.write_varint(10UL);
-      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); @protobuf.Write::write(v, writer)
 
     }
     None => ()
   }
   for item in self.uninterpreted_option {
     writer |> @protobuf.write_varint(7994UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
 }
@@ -6164,36 +5256,28 @@ pub impl @json.FromJson for OneofOptions with from_json(json: Json, path: @json.
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] OneofOptions::async_read(reader : R) -> OneofOptions raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  OneofOptions::async_read_with_limit(reader)
+pub impl @protobuf.AsyncWrite for OneofOptions with write(self: OneofOptions, writer : &@protobuf.AsyncWriter) -> Unit raise {
+  match self.features {
+    Some(v) => {
+      writer |> @protobuf.async_write_varint(10UL);
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); @protobuf.AsyncWrite::write(v, writer)
+
+    }
+    None => ()
+  }
+  for item in self.uninterpreted_option {
+    writer |> @protobuf.async_write_varint(7994UL)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
+
+  }
 }
-pub async fn[R: @protobuf.AsyncReader] OneofOptions::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> OneofOptions raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.AsyncRead for OneofOptions with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> OneofOptions raise {
   let msg = OneofOptions::default()
   try {
     for {
       match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.features =   {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      FeatureSet::default()
-    } else {
-      FeatureSet::async_read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (999, _) => msg.uninterpreted_option.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      UninterpretedOption::default()
-    } else {
-      UninterpretedOption::async_read_with_limit(reader, limit=len)
-    }
-  })
+      (1, _) => msg.features = (reader |> @protobuf.async_read_message() : FeatureSet) |> Some
+      (999, _) => msg.uninterpreted_option.push((reader |> @protobuf.async_read_message() : UninterpretedOption))
        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
       }
     }
@@ -6201,23 +5285,7 @@ pub async fn[R: @protobuf.AsyncReader] OneofOptions::async_read_with_limit(reade
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
-}
-pub async fn[W: @protobuf.AsyncWriter] OneofOptions::async_write(self:Self, writer : W) -> Unit raise {
-  match self.features {
-    Some(v) => {
-      writer |> @protobuf.async_write_varint(10UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
-
-    }
-    None => ()
-  }
-  for item in self.uninterpreted_option {
-    writer |> @protobuf.async_write_varint(7994UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
-
-  }
 }
 pub(all) struct EnumOptions {
   mut allow_alias : Bool?
@@ -6265,16 +5333,7 @@ pub fn EnumOptions::new(allow_alias? : Bool, deprecated? : Bool, deprecated_lega
     uninterpreted_option,
   }
 }
-pub  fn[R: @protobuf.Reader] EnumOptions::read(reader : R) -> EnumOptions raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  EnumOptions::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] EnumOptions::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> EnumOptions raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for EnumOptions with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> EnumOptions raise {
   let msg = EnumOptions::default()
   try {
     for {
@@ -6282,22 +5341,8 @@ pub  fn[R: @protobuf.Reader] EnumOptions::read_with_limit(reader : @protobuf.Lim
       (2, _) => msg.allow_alias = reader |> @protobuf.read_bool() |> Some
       (3, _) => msg.deprecated = reader |> @protobuf.read_bool() |> Some
       (6, _) => msg.deprecated_legacy_json_field_conflicts = reader |> @protobuf.read_bool() |> Some
-      (7, _) => msg.features =   {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      FeatureSet::default()
-    } else {
-      FeatureSet::read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (999, _) => msg.uninterpreted_option.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      UninterpretedOption::default()
-    } else {
-      UninterpretedOption::read_with_limit(reader, limit=len)
-    }
-  })
+      (7, _) => msg.features = (reader |> @protobuf.read_message() : FeatureSet) |> Some
+      (999, _) => msg.uninterpreted_option.push((reader |> @protobuf.read_message() : UninterpretedOption))
        (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
@@ -6305,10 +5350,9 @@ pub  fn[R: @protobuf.Reader] EnumOptions::read_with_limit(reader : @protobuf.Lim
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] EnumOptions::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for EnumOptions with write(self: EnumOptions, writer : &@protobuf.Writer) -> Unit raise {
   match self.allow_alias {
     Some(v) => {
       writer |> @protobuf.write_varint(16UL);
@@ -6336,14 +5380,14 @@ pub  fn[W: @protobuf.Writer] EnumOptions::write(self:Self, writer : W) -> Unit r
   match self.features {
     Some(v) => {
       writer |> @protobuf.write_varint(58UL);
-      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); @protobuf.Write::write(v, writer)
 
     }
     None => ()
   }
   for item in self.uninterpreted_option {
     writer |> @protobuf.write_varint(7994UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
 }
@@ -6388,50 +5432,7 @@ pub impl @json.FromJson for EnumOptions with from_json(json: Json, path: @json.J
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] EnumOptions::async_read(reader : R) -> EnumOptions raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  EnumOptions::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] EnumOptions::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> EnumOptions raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = EnumOptions::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (2, _) => msg.allow_alias = reader |> @protobuf.async_read_bool() |> Some
-      (3, _) => msg.deprecated = reader |> @protobuf.async_read_bool() |> Some
-      (6, _) => msg.deprecated_legacy_json_field_conflicts = reader |> @protobuf.async_read_bool() |> Some
-      (7, _) => msg.features =   {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      FeatureSet::default()
-    } else {
-      FeatureSet::async_read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (999, _) => msg.uninterpreted_option.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      UninterpretedOption::default()
-    } else {
-      UninterpretedOption::async_read_with_limit(reader, limit=len)
-    }
-  })
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] EnumOptions::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for EnumOptions with write(self: EnumOptions, writer : &@protobuf.AsyncWriter) -> Unit raise {
   match self.allow_alias {
     Some(v) => {
       writer |> @protobuf.async_write_varint(16UL);
@@ -6459,16 +5460,35 @@ pub async fn[W: @protobuf.AsyncWriter] EnumOptions::async_write(self:Self, write
   match self.features {
     Some(v) => {
       writer |> @protobuf.async_write_varint(58UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); @protobuf.AsyncWrite::write(v, writer)
 
     }
     None => ()
   }
   for item in self.uninterpreted_option {
     writer |> @protobuf.async_write_varint(7994UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
+}
+pub impl @protobuf.AsyncRead for EnumOptions with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> EnumOptions raise {
+  let msg = EnumOptions::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (2, _) => msg.allow_alias = reader |> @protobuf.async_read_bool() |> Some
+      (3, _) => msg.deprecated = reader |> @protobuf.async_read_bool() |> Some
+      (6, _) => msg.deprecated_legacy_json_field_conflicts = reader |> @protobuf.async_read_bool() |> Some
+      (7, _) => msg.features = (reader |> @protobuf.async_read_message() : FeatureSet) |> Some
+      (999, _) => msg.uninterpreted_option.push((reader |> @protobuf.async_read_message() : UninterpretedOption))
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 pub(all) struct EnumValueOptions {
   mut deprecated : Bool?
@@ -6516,46 +5536,16 @@ pub fn EnumValueOptions::new(deprecated? : Bool, features? : FeatureSet, debug_r
     uninterpreted_option,
   }
 }
-pub  fn[R: @protobuf.Reader] EnumValueOptions::read(reader : R) -> EnumValueOptions raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  EnumValueOptions::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] EnumValueOptions::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> EnumValueOptions raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for EnumValueOptions with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> EnumValueOptions raise {
   let msg = EnumValueOptions::default()
   try {
     for {
       match (reader |> @protobuf.read_tag()) {
       (1, _) => msg.deprecated = reader |> @protobuf.read_bool() |> Some
-      (2, _) => msg.features =   {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      FeatureSet::default()
-    } else {
-      FeatureSet::read_with_limit(reader, limit=len)
-    }
-  } |> Some
+      (2, _) => msg.features = (reader |> @protobuf.read_message() : FeatureSet) |> Some
       (3, _) => msg.debug_redact = reader |> @protobuf.read_bool() |> Some
-      (4, _) => msg.feature_support =   {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      FieldOptions_FeatureSupport::default()
-    } else {
-      FieldOptions_FeatureSupport::read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (999, _) => msg.uninterpreted_option.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      UninterpretedOption::default()
-    } else {
-      UninterpretedOption::read_with_limit(reader, limit=len)
-    }
-  })
+      (4, _) => msg.feature_support = (reader |> @protobuf.read_message() : FieldOptions_FeatureSupport) |> Some
+      (999, _) => msg.uninterpreted_option.push((reader |> @protobuf.read_message() : UninterpretedOption))
        (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
@@ -6563,10 +5553,9 @@ pub  fn[R: @protobuf.Reader] EnumValueOptions::read_with_limit(reader : @protobu
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] EnumValueOptions::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for EnumValueOptions with write(self: EnumValueOptions, writer : &@protobuf.Writer) -> Unit raise {
   match self.deprecated {
     Some(v) => {
       writer |> @protobuf.write_varint(8UL);
@@ -6578,7 +5567,7 @@ pub  fn[W: @protobuf.Writer] EnumValueOptions::write(self:Self, writer : W) -> U
   match self.features {
     Some(v) => {
       writer |> @protobuf.write_varint(18UL);
-      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); @protobuf.Write::write(v, writer)
 
     }
     None => ()
@@ -6594,14 +5583,14 @@ pub  fn[W: @protobuf.Writer] EnumValueOptions::write(self:Self, writer : W) -> U
   match self.feature_support {
     Some(v) => {
       writer |> @protobuf.write_varint(34UL);
-      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); @protobuf.Write::write(v, writer)
 
     }
     None => ()
   }
   for item in self.uninterpreted_option {
     writer |> @protobuf.write_varint(7994UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
 }
@@ -6646,57 +5635,7 @@ pub impl @json.FromJson for EnumValueOptions with from_json(json: Json, path: @j
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] EnumValueOptions::async_read(reader : R) -> EnumValueOptions raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  EnumValueOptions::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] EnumValueOptions::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> EnumValueOptions raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = EnumValueOptions::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.deprecated = reader |> @protobuf.async_read_bool() |> Some
-      (2, _) => msg.features =   {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      FeatureSet::default()
-    } else {
-      FeatureSet::async_read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (3, _) => msg.debug_redact = reader |> @protobuf.async_read_bool() |> Some
-      (4, _) => msg.feature_support =   {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      FieldOptions_FeatureSupport::default()
-    } else {
-      FieldOptions_FeatureSupport::async_read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (999, _) => msg.uninterpreted_option.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      UninterpretedOption::default()
-    } else {
-      UninterpretedOption::async_read_with_limit(reader, limit=len)
-    }
-  })
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] EnumValueOptions::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for EnumValueOptions with write(self: EnumValueOptions, writer : &@protobuf.AsyncWriter) -> Unit raise {
   match self.deprecated {
     Some(v) => {
       writer |> @protobuf.async_write_varint(8UL);
@@ -6708,7 +5647,7 @@ pub async fn[W: @protobuf.AsyncWriter] EnumValueOptions::async_write(self:Self, 
   match self.features {
     Some(v) => {
       writer |> @protobuf.async_write_varint(18UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); @protobuf.AsyncWrite::write(v, writer)
 
     }
     None => ()
@@ -6724,16 +5663,35 @@ pub async fn[W: @protobuf.AsyncWriter] EnumValueOptions::async_write(self:Self, 
   match self.feature_support {
     Some(v) => {
       writer |> @protobuf.async_write_varint(34UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); @protobuf.AsyncWrite::write(v, writer)
 
     }
     None => ()
   }
   for item in self.uninterpreted_option {
     writer |> @protobuf.async_write_varint(7994UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
+}
+pub impl @protobuf.AsyncRead for EnumValueOptions with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> EnumValueOptions raise {
+  let msg = EnumValueOptions::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.deprecated = reader |> @protobuf.async_read_bool() |> Some
+      (2, _) => msg.features = (reader |> @protobuf.async_read_message() : FeatureSet) |> Some
+      (3, _) => msg.debug_redact = reader |> @protobuf.async_read_bool() |> Some
+      (4, _) => msg.feature_support = (reader |> @protobuf.async_read_message() : FieldOptions_FeatureSupport) |> Some
+      (999, _) => msg.uninterpreted_option.push((reader |> @protobuf.async_read_message() : UninterpretedOption))
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 pub(all) struct ServiceOptions {
   mut features : FeatureSet?
@@ -6767,37 +5725,14 @@ pub fn ServiceOptions::new(features? : FeatureSet, deprecated? : Bool, uninterpr
     uninterpreted_option,
   }
 }
-pub  fn[R: @protobuf.Reader] ServiceOptions::read(reader : R) -> ServiceOptions raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  ServiceOptions::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] ServiceOptions::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> ServiceOptions raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for ServiceOptions with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> ServiceOptions raise {
   let msg = ServiceOptions::default()
   try {
     for {
       match (reader |> @protobuf.read_tag()) {
-      (34, _) => msg.features =   {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      FeatureSet::default()
-    } else {
-      FeatureSet::read_with_limit(reader, limit=len)
-    }
-  } |> Some
+      (34, _) => msg.features = (reader |> @protobuf.read_message() : FeatureSet) |> Some
       (33, _) => msg.deprecated = reader |> @protobuf.read_bool() |> Some
-      (999, _) => msg.uninterpreted_option.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      UninterpretedOption::default()
-    } else {
-      UninterpretedOption::read_with_limit(reader, limit=len)
-    }
-  })
+      (999, _) => msg.uninterpreted_option.push((reader |> @protobuf.read_message() : UninterpretedOption))
        (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
@@ -6805,14 +5740,13 @@ pub  fn[R: @protobuf.Reader] ServiceOptions::read_with_limit(reader : @protobuf.
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] ServiceOptions::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for ServiceOptions with write(self: ServiceOptions, writer : &@protobuf.Writer) -> Unit raise {
   match self.features {
     Some(v) => {
       writer |> @protobuf.write_varint(274UL);
-      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); @protobuf.Write::write(v, writer)
 
     }
     None => ()
@@ -6827,7 +5761,7 @@ pub  fn[W: @protobuf.Writer] ServiceOptions::write(self:Self, writer : W) -> Uni
   }
   for item in self.uninterpreted_option {
     writer |> @protobuf.write_varint(7994UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
 }
@@ -6862,52 +5796,11 @@ pub impl @json.FromJson for ServiceOptions with from_json(json: Json, path: @jso
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] ServiceOptions::async_read(reader : R) -> ServiceOptions raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  ServiceOptions::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] ServiceOptions::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> ServiceOptions raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = ServiceOptions::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (34, _) => msg.features =   {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      FeatureSet::default()
-    } else {
-      FeatureSet::async_read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (33, _) => msg.deprecated = reader |> @protobuf.async_read_bool() |> Some
-      (999, _) => msg.uninterpreted_option.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      UninterpretedOption::default()
-    } else {
-      UninterpretedOption::async_read_with_limit(reader, limit=len)
-    }
-  })
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] ServiceOptions::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for ServiceOptions with write(self: ServiceOptions, writer : &@protobuf.AsyncWriter) -> Unit raise {
   match self.features {
     Some(v) => {
       writer |> @protobuf.async_write_varint(274UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); @protobuf.AsyncWrite::write(v, writer)
 
     }
     None => ()
@@ -6922,9 +5815,26 @@ pub async fn[W: @protobuf.AsyncWriter] ServiceOptions::async_write(self:Self, wr
   }
   for item in self.uninterpreted_option {
     writer |> @protobuf.async_write_varint(7994UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
+}
+pub impl @protobuf.AsyncRead for ServiceOptions with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> ServiceOptions raise {
+  let msg = ServiceOptions::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (34, _) => msg.features = (reader |> @protobuf.async_read_message() : FeatureSet) |> Some
+      (33, _) => msg.deprecated = reader |> @protobuf.async_read_bool() |> Some
+      (999, _) => msg.uninterpreted_option.push((reader |> @protobuf.async_read_message() : UninterpretedOption))
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 pub(all) enum MethodOptions_IdempotencyLevel {
   IDEMPOTENCY_UNKNOWN
@@ -7009,38 +5919,15 @@ pub fn MethodOptions::new(deprecated? : Bool, idempotency_level? : MethodOptions
     uninterpreted_option,
   }
 }
-pub  fn[R: @protobuf.Reader] MethodOptions::read(reader : R) -> MethodOptions raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  MethodOptions::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] MethodOptions::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> MethodOptions raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for MethodOptions with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> MethodOptions raise {
   let msg = MethodOptions::default()
   try {
     for {
       match (reader |> @protobuf.read_tag()) {
       (33, _) => msg.deprecated = reader |> @protobuf.read_bool() |> Some
       (34, _) => msg.idempotency_level = reader |> @protobuf.read_enum() |> MethodOptions_IdempotencyLevel::from_enum |> Some
-      (35, _) => msg.features =   {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      FeatureSet::default()
-    } else {
-      FeatureSet::read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (999, _) => msg.uninterpreted_option.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      UninterpretedOption::default()
-    } else {
-      UninterpretedOption::read_with_limit(reader, limit=len)
-    }
-  })
+      (35, _) => msg.features = (reader |> @protobuf.read_message() : FeatureSet) |> Some
+      (999, _) => msg.uninterpreted_option.push((reader |> @protobuf.read_message() : UninterpretedOption))
        (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
@@ -7048,10 +5935,9 @@ pub  fn[R: @protobuf.Reader] MethodOptions::read_with_limit(reader : @protobuf.L
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] MethodOptions::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for MethodOptions with write(self: MethodOptions, writer : &@protobuf.Writer) -> Unit raise {
   match self.deprecated {
     Some(v) => {
       writer |> @protobuf.write_varint(264UL);
@@ -7071,14 +5957,14 @@ pub  fn[W: @protobuf.Writer] MethodOptions::write(self:Self, writer : W) -> Unit
   match self.features {
     Some(v) => {
       writer |> @protobuf.write_varint(282UL);
-      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); @protobuf.Write::write(v, writer)
 
     }
     None => ()
   }
   for item in self.uninterpreted_option {
     writer |> @protobuf.write_varint(7994UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
 }
@@ -7118,49 +6004,7 @@ pub impl @json.FromJson for MethodOptions with from_json(json: Json, path: @json
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] MethodOptions::async_read(reader : R) -> MethodOptions raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  MethodOptions::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] MethodOptions::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> MethodOptions raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = MethodOptions::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (33, _) => msg.deprecated = reader |> @protobuf.async_read_bool() |> Some
-      (34, _) => msg.idempotency_level = reader |> @protobuf.async_read_enum() |> MethodOptions_IdempotencyLevel::from_enum |> Some
-      (35, _) => msg.features =   {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      FeatureSet::default()
-    } else {
-      FeatureSet::async_read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (999, _) => msg.uninterpreted_option.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      UninterpretedOption::default()
-    } else {
-      UninterpretedOption::async_read_with_limit(reader, limit=len)
-    }
-  })
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] MethodOptions::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for MethodOptions with write(self: MethodOptions, writer : &@protobuf.AsyncWriter) -> Unit raise {
   match self.deprecated {
     Some(v) => {
       writer |> @protobuf.async_write_varint(264UL);
@@ -7180,16 +6024,34 @@ pub async fn[W: @protobuf.AsyncWriter] MethodOptions::async_write(self:Self, wri
   match self.features {
     Some(v) => {
       writer |> @protobuf.async_write_varint(282UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); @protobuf.AsyncWrite::write(v, writer)
 
     }
     None => ()
   }
   for item in self.uninterpreted_option {
     writer |> @protobuf.async_write_varint(7994UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
+}
+pub impl @protobuf.AsyncRead for MethodOptions with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> MethodOptions raise {
+  let msg = MethodOptions::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (33, _) => msg.deprecated = reader |> @protobuf.async_read_bool() |> Some
+      (34, _) => msg.idempotency_level = reader |> @protobuf.async_read_enum() |> MethodOptions_IdempotencyLevel::from_enum |> Some
+      (35, _) => msg.features = (reader |> @protobuf.async_read_message() : FeatureSet) |> Some
+      (999, _) => msg.uninterpreted_option.push((reader |> @protobuf.async_read_message() : UninterpretedOption))
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 pub(all) struct UninterpretedOption_NamePart {
   mut name_part : String
@@ -7213,16 +6075,7 @@ pub fn UninterpretedOption_NamePart::new(name_part : String, is_extension : Bool
     is_extension,
   }
 }
-pub  fn[R: @protobuf.Reader] UninterpretedOption_NamePart::read(reader : R) -> UninterpretedOption_NamePart raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  UninterpretedOption_NamePart::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] UninterpretedOption_NamePart::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> UninterpretedOption_NamePart raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for UninterpretedOption_NamePart with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> UninterpretedOption_NamePart raise {
   let msg = UninterpretedOption_NamePart::default()
   try {
     for {
@@ -7236,10 +6089,9 @@ pub  fn[R: @protobuf.Reader] UninterpretedOption_NamePart::read_with_limit(reade
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] UninterpretedOption_NamePart::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for UninterpretedOption_NamePart with write(self: UninterpretedOption_NamePart, writer : &@protobuf.Writer) -> Unit raise {
   writer |> @protobuf.write_varint(10UL);
   writer |> @protobuf.write_string(self.name_part)
   writer |> @protobuf.write_varint(16UL);
@@ -7269,16 +6121,13 @@ pub impl @json.FromJson for UninterpretedOption_NamePart with from_json(json: Js
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] UninterpretedOption_NamePart::async_read(reader : R) -> UninterpretedOption_NamePart raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  UninterpretedOption_NamePart::async_read_with_limit(reader)
+pub impl @protobuf.AsyncWrite for UninterpretedOption_NamePart with write(self: UninterpretedOption_NamePart, writer : &@protobuf.AsyncWriter) -> Unit raise {
+  writer |> @protobuf.async_write_varint(10UL);
+  writer |> @protobuf.async_write_string(self.name_part)
+  writer |> @protobuf.async_write_varint(16UL);
+  writer |> @protobuf.async_write_bool(self.is_extension)
 }
-pub async fn[R: @protobuf.AsyncReader] UninterpretedOption_NamePart::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> UninterpretedOption_NamePart raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.AsyncRead for UninterpretedOption_NamePart with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> UninterpretedOption_NamePart raise {
   let msg = UninterpretedOption_NamePart::default()
   try {
     for {
@@ -7292,14 +6141,7 @@ pub async fn[R: @protobuf.AsyncReader] UninterpretedOption_NamePart::async_read_
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
-}
-pub async fn[W: @protobuf.AsyncWriter] UninterpretedOption_NamePart::async_write(self:Self, writer : W) -> Unit raise {
-  writer |> @protobuf.async_write_varint(10UL);
-  writer |> @protobuf.async_write_string(self.name_part)
-  writer |> @protobuf.async_write_varint(16UL);
-  writer |> @protobuf.async_write_bool(self.is_extension)
 }
 pub(all) struct UninterpretedOption {
   mut name : Array[UninterpretedOption_NamePart]
@@ -7361,28 +6203,12 @@ pub fn UninterpretedOption::new(name : Array[UninterpretedOption_NamePart], iden
     aggregate_value,
   }
 }
-pub  fn[R: @protobuf.Reader] UninterpretedOption::read(reader : R) -> UninterpretedOption raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  UninterpretedOption::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] UninterpretedOption::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> UninterpretedOption raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for UninterpretedOption with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> UninterpretedOption raise {
   let msg = UninterpretedOption::default()
   try {
     for {
       match (reader |> @protobuf.read_tag()) {
-      (2, _) => msg.name.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      UninterpretedOption_NamePart::default()
-    } else {
-      UninterpretedOption_NamePart::read_with_limit(reader, limit=len)
-    }
-  })
+      (2, _) => msg.name.push((reader |> @protobuf.read_message() : UninterpretedOption_NamePart))
       (3, _) => msg.identifier_value = reader |> @protobuf.read_string() |> Some
       (4, _) => msg.positive_int_value = reader |> @protobuf.read_uint64() |> Some
       (5, _) => msg.negative_int_value = reader |> @protobuf.read_int64() |> Some
@@ -7396,13 +6222,12 @@ pub  fn[R: @protobuf.Reader] UninterpretedOption::read_with_limit(reader : @prot
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] UninterpretedOption::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for UninterpretedOption with write(self: UninterpretedOption, writer : &@protobuf.Writer) -> Unit raise {
   for item in self.name {
     writer |> @protobuf.write_varint(18UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
   match self.identifier_value {
@@ -7505,48 +6330,10 @@ pub impl @json.FromJson for UninterpretedOption with from_json(json: Json, path:
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] UninterpretedOption::async_read(reader : R) -> UninterpretedOption raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  UninterpretedOption::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] UninterpretedOption::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> UninterpretedOption raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = UninterpretedOption::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (2, _) => msg.name.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      UninterpretedOption_NamePart::default()
-    } else {
-      UninterpretedOption_NamePart::async_read_with_limit(reader, limit=len)
-    }
-  })
-      (3, _) => msg.identifier_value = reader |> @protobuf.async_read_string() |> Some
-      (4, _) => msg.positive_int_value = reader |> @protobuf.async_read_uint64() |> Some
-      (5, _) => msg.negative_int_value = reader |> @protobuf.async_read_int64() |> Some
-      (6, _) => msg.double_value = reader |> @protobuf.async_read_double() |> Some
-      (7, _) => msg.string_value = reader |> @protobuf.async_read_bytes() |> Some
-      (8, _) => msg.aggregate_value = reader |> @protobuf.async_read_string() |> Some
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] UninterpretedOption::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for UninterpretedOption with write(self: UninterpretedOption, writer : &@protobuf.AsyncWriter) -> Unit raise {
   for item in self.name {
     writer |> @protobuf.async_write_varint(18UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
   match self.identifier_value {
@@ -7597,6 +6384,27 @@ pub async fn[W: @protobuf.AsyncWriter] UninterpretedOption::async_write(self:Sel
     }
     None => ()
   }
+}
+pub impl @protobuf.AsyncRead for UninterpretedOption with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> UninterpretedOption raise {
+  let msg = UninterpretedOption::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (2, _) => msg.name.push((reader |> @protobuf.async_read_message() : UninterpretedOption_NamePart))
+      (3, _) => msg.identifier_value = reader |> @protobuf.async_read_string() |> Some
+      (4, _) => msg.positive_int_value = reader |> @protobuf.async_read_uint64() |> Some
+      (5, _) => msg.negative_int_value = reader |> @protobuf.async_read_int64() |> Some
+      (6, _) => msg.double_value = reader |> @protobuf.async_read_double() |> Some
+      (7, _) => msg.string_value = reader |> @protobuf.async_read_bytes() |> Some
+      (8, _) => msg.aggregate_value = reader |> @protobuf.async_read_string() |> Some
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 pub(all) enum FeatureSet_FieldPresence {
   FIELD_PRESENCE_UNKNOWN
@@ -7981,29 +6789,21 @@ pub fn FeatureSet_VisibilityFeature::new() -> FeatureSet_VisibilityFeature {
   FeatureSet_VisibilityFeature::{
   }
 }
-pub  fn[R] FeatureSet_VisibilityFeature::read(reader : R) -> FeatureSet_VisibilityFeature noraise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FeatureSet_VisibilityFeature::read_with_limit(reader)
-}
-pub  fn[R] FeatureSet_VisibilityFeature::read_with_limit(_ : @protobuf.LimitedReader[R], _limit ?: Int) -> FeatureSet_VisibilityFeature noraise {
+pub impl @protobuf.Read for FeatureSet_VisibilityFeature with read_with_limit(_) -> FeatureSet_VisibilityFeature noraise {
   FeatureSet_VisibilityFeature::default()
 }
-pub  fn[W: @protobuf.Writer] FeatureSet_VisibilityFeature::write(_: Self, _ : W) -> Unit noraise {
+pub impl @protobuf.Write for FeatureSet_VisibilityFeature with write(_, _) -> Unit noraise {
 }
 pub impl ToJson for FeatureSet_VisibilityFeature with to_json(_) {
   {}
 }
-pub impl @json.FromJson for FeatureSet_VisibilityFeature with from_json(json: Json, path: @json.JsonPath) -> FeatureSet_VisibilityFeature noraise {
+pub impl @json.FromJson for FeatureSet_VisibilityFeature with from_json(_, _) -> FeatureSet_VisibilityFeature noraise {
   FeatureSet_VisibilityFeature::default()
 }
-pub async fn[R] FeatureSet_VisibilityFeature::async_read(reader : R) -> FeatureSet_VisibilityFeature noraise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FeatureSet_VisibilityFeature::async_read_with_limit(reader)
+pub impl @protobuf.AsyncWrite for FeatureSet_VisibilityFeature with write(_, _) -> Unit noraise {
 }
-pub async fn[R] FeatureSet_VisibilityFeature::async_read_with_limit(_ : @protobuf.LimitedReader[R], _limit ?: Int) -> FeatureSet_VisibilityFeature noraise {
+pub impl @protobuf.AsyncRead for FeatureSet_VisibilityFeature with read_with_limit(_) -> FeatureSet_VisibilityFeature noraise {
   FeatureSet_VisibilityFeature::default()
-}
-pub async fn[W: @protobuf.AsyncWriter] FeatureSet_VisibilityFeature::async_write(_: Self, _ : W) -> Unit noraise {
 }
 pub(all) struct FeatureSet {
   mut field_presence : FeatureSet_FieldPresence?
@@ -8075,16 +6875,7 @@ pub fn FeatureSet::new(field_presence? : FeatureSet_FieldPresence, enum_type? : 
     default_symbol_visibility,
   }
 }
-pub  fn[R: @protobuf.Reader] FeatureSet::read(reader : R) -> FeatureSet raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FeatureSet::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] FeatureSet::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> FeatureSet raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for FeatureSet with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> FeatureSet raise {
   let msg = FeatureSet::default()
   try {
     for {
@@ -8104,10 +6895,9 @@ pub  fn[R: @protobuf.Reader] FeatureSet::read_with_limit(reader : @protobuf.Limi
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] FeatureSet::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for FeatureSet with write(self: FeatureSet, writer : &@protobuf.Writer) -> Unit raise {
   match self.field_presence {
     Some(v) => {
       writer |> @protobuf.write_varint(8UL);
@@ -8229,39 +7019,7 @@ pub impl @json.FromJson for FeatureSet with from_json(json: Json, path: @json.Js
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] FeatureSet::async_read(reader : R) -> FeatureSet raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FeatureSet::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] FeatureSet::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> FeatureSet raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = FeatureSet::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.field_presence = reader |> @protobuf.async_read_enum() |> FeatureSet_FieldPresence::from_enum |> Some
-      (2, _) => msg.enum_type = reader |> @protobuf.async_read_enum() |> FeatureSet_EnumType::from_enum |> Some
-      (3, _) => msg.repeated_field_encoding = reader |> @protobuf.async_read_enum() |> FeatureSet_RepeatedFieldEncoding::from_enum |> Some
-      (4, _) => msg.utf8_validation = reader |> @protobuf.async_read_enum() |> FeatureSet_Utf8Validation::from_enum |> Some
-      (5, _) => msg.message_encoding = reader |> @protobuf.async_read_enum() |> FeatureSet_MessageEncoding::from_enum |> Some
-      (6, _) => msg.json_format = reader |> @protobuf.async_read_enum() |> FeatureSet_JsonFormat::from_enum |> Some
-      (7, _) => msg.enforce_naming_style = reader |> @protobuf.async_read_enum() |> FeatureSet_EnforceNamingStyle::from_enum |> Some
-      (8, _) => msg.default_symbol_visibility = reader |> @protobuf.async_read_enum() |> FeatureSet_VisibilityFeature_DefaultSymbolVisibility::from_enum |> Some
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] FeatureSet::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for FeatureSet with write(self: FeatureSet, writer : &@protobuf.AsyncWriter) -> Unit raise {
   match self.field_presence {
     Some(v) => {
       writer |> @protobuf.async_write_varint(8UL);
@@ -8327,6 +7085,28 @@ pub async fn[W: @protobuf.AsyncWriter] FeatureSet::async_write(self:Self, writer
     None => ()
   }
 }
+pub impl @protobuf.AsyncRead for FeatureSet with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> FeatureSet raise {
+  let msg = FeatureSet::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.field_presence = reader |> @protobuf.async_read_enum() |> FeatureSet_FieldPresence::from_enum |> Some
+      (2, _) => msg.enum_type = reader |> @protobuf.async_read_enum() |> FeatureSet_EnumType::from_enum |> Some
+      (3, _) => msg.repeated_field_encoding = reader |> @protobuf.async_read_enum() |> FeatureSet_RepeatedFieldEncoding::from_enum |> Some
+      (4, _) => msg.utf8_validation = reader |> @protobuf.async_read_enum() |> FeatureSet_Utf8Validation::from_enum |> Some
+      (5, _) => msg.message_encoding = reader |> @protobuf.async_read_enum() |> FeatureSet_MessageEncoding::from_enum |> Some
+      (6, _) => msg.json_format = reader |> @protobuf.async_read_enum() |> FeatureSet_JsonFormat::from_enum |> Some
+      (7, _) => msg.enforce_naming_style = reader |> @protobuf.async_read_enum() |> FeatureSet_EnforceNamingStyle::from_enum |> Some
+      (8, _) => msg.default_symbol_visibility = reader |> @protobuf.async_read_enum() |> FeatureSet_VisibilityFeature_DefaultSymbolVisibility::from_enum |> Some
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
+}
 pub(all) struct FeatureSetDefaults_FeatureSetEditionDefault {
   mut edition : Edition?
   mut overridable_features : FeatureSet?
@@ -8362,37 +7142,14 @@ pub fn FeatureSetDefaults_FeatureSetEditionDefault::new(edition? : Edition, over
     fixed_features,
   }
 }
-pub  fn[R: @protobuf.Reader] FeatureSetDefaults_FeatureSetEditionDefault::read(reader : R) -> FeatureSetDefaults_FeatureSetEditionDefault raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FeatureSetDefaults_FeatureSetEditionDefault::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] FeatureSetDefaults_FeatureSetEditionDefault::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> FeatureSetDefaults_FeatureSetEditionDefault raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for FeatureSetDefaults_FeatureSetEditionDefault with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> FeatureSetDefaults_FeatureSetEditionDefault raise {
   let msg = FeatureSetDefaults_FeatureSetEditionDefault::default()
   try {
     for {
       match (reader |> @protobuf.read_tag()) {
       (3, _) => msg.edition = reader |> @protobuf.read_enum() |> Edition::from_enum |> Some
-      (4, _) => msg.overridable_features =   {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      FeatureSet::default()
-    } else {
-      FeatureSet::read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (5, _) => msg.fixed_features =   {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      FeatureSet::default()
-    } else {
-      FeatureSet::read_with_limit(reader, limit=len)
-    }
-  } |> Some
+      (4, _) => msg.overridable_features = (reader |> @protobuf.read_message() : FeatureSet) |> Some
+      (5, _) => msg.fixed_features = (reader |> @protobuf.read_message() : FeatureSet) |> Some
        (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
@@ -8400,10 +7157,9 @@ pub  fn[R: @protobuf.Reader] FeatureSetDefaults_FeatureSetEditionDefault::read_w
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] FeatureSetDefaults_FeatureSetEditionDefault::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for FeatureSetDefaults_FeatureSetEditionDefault with write(self: FeatureSetDefaults_FeatureSetEditionDefault, writer : &@protobuf.Writer) -> Unit raise {
   match self.edition {
     Some(v) => {
       writer |> @protobuf.write_varint(24UL);
@@ -8415,7 +7171,7 @@ pub  fn[W: @protobuf.Writer] FeatureSetDefaults_FeatureSetEditionDefault::write(
   match self.overridable_features {
     Some(v) => {
       writer |> @protobuf.write_varint(34UL);
-      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); @protobuf.Write::write(v, writer)
 
     }
     None => ()
@@ -8423,7 +7179,7 @@ pub  fn[W: @protobuf.Writer] FeatureSetDefaults_FeatureSetEditionDefault::write(
   match self.fixed_features {
     Some(v) => {
       writer |> @protobuf.write_varint(42UL);
-      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); v.write(writer)
+      writer |> @protobuf.write_uint32(@protobuf.size_of(v)); @protobuf.Write::write(v, writer)
 
     }
     None => ()
@@ -8460,48 +7216,7 @@ pub impl @json.FromJson for FeatureSetDefaults_FeatureSetEditionDefault with fro
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] FeatureSetDefaults_FeatureSetEditionDefault::async_read(reader : R) -> FeatureSetDefaults_FeatureSetEditionDefault raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FeatureSetDefaults_FeatureSetEditionDefault::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] FeatureSetDefaults_FeatureSetEditionDefault::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> FeatureSetDefaults_FeatureSetEditionDefault raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = FeatureSetDefaults_FeatureSetEditionDefault::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (3, _) => msg.edition = reader |> @protobuf.async_read_enum() |> Edition::from_enum |> Some
-      (4, _) => msg.overridable_features =   {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      FeatureSet::default()
-    } else {
-      FeatureSet::async_read_with_limit(reader, limit=len)
-    }
-  } |> Some
-      (5, _) => msg.fixed_features =   {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      FeatureSet::default()
-    } else {
-      FeatureSet::async_read_with_limit(reader, limit=len)
-    }
-  } |> Some
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] FeatureSetDefaults_FeatureSetEditionDefault::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for FeatureSetDefaults_FeatureSetEditionDefault with write(self: FeatureSetDefaults_FeatureSetEditionDefault, writer : &@protobuf.AsyncWriter) -> Unit raise {
   match self.edition {
     Some(v) => {
       writer |> @protobuf.async_write_varint(24UL);
@@ -8513,7 +7228,7 @@ pub async fn[W: @protobuf.AsyncWriter] FeatureSetDefaults_FeatureSetEditionDefau
   match self.overridable_features {
     Some(v) => {
       writer |> @protobuf.async_write_varint(34UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); @protobuf.AsyncWrite::write(v, writer)
 
     }
     None => ()
@@ -8521,11 +7236,28 @@ pub async fn[W: @protobuf.AsyncWriter] FeatureSetDefaults_FeatureSetEditionDefau
   match self.fixed_features {
     Some(v) => {
       writer |> @protobuf.async_write_varint(42UL);
-      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); v.async_write(writer)
+      writer |> @protobuf.async_write_uint32(@protobuf.size_of(v)); @protobuf.AsyncWrite::write(v, writer)
 
     }
     None => ()
   }
+}
+pub impl @protobuf.AsyncRead for FeatureSetDefaults_FeatureSetEditionDefault with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> FeatureSetDefaults_FeatureSetEditionDefault raise {
+  let msg = FeatureSetDefaults_FeatureSetEditionDefault::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (3, _) => msg.edition = reader |> @protobuf.async_read_enum() |> Edition::from_enum |> Some
+      (4, _) => msg.overridable_features = (reader |> @protobuf.async_read_message() : FeatureSet) |> Some
+      (5, _) => msg.fixed_features = (reader |> @protobuf.async_read_message() : FeatureSet) |> Some
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 pub(all) struct FeatureSetDefaults {
   mut defaults : Array[FeatureSetDefaults_FeatureSetEditionDefault]
@@ -8559,28 +7291,12 @@ pub fn FeatureSetDefaults::new(defaults : Array[FeatureSetDefaults_FeatureSetEdi
     maximum_edition,
   }
 }
-pub  fn[R: @protobuf.Reader] FeatureSetDefaults::read(reader : R) -> FeatureSetDefaults raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FeatureSetDefaults::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] FeatureSetDefaults::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> FeatureSetDefaults raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for FeatureSetDefaults with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> FeatureSetDefaults raise {
   let msg = FeatureSetDefaults::default()
   try {
     for {
       match (reader |> @protobuf.read_tag()) {
-      (1, _) => msg.defaults.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      FeatureSetDefaults_FeatureSetEditionDefault::default()
-    } else {
-      FeatureSetDefaults_FeatureSetEditionDefault::read_with_limit(reader, limit=len)
-    }
-  })
+      (1, _) => msg.defaults.push((reader |> @protobuf.read_message() : FeatureSetDefaults_FeatureSetEditionDefault))
       (4, _) => msg.minimum_edition = reader |> @protobuf.read_enum() |> Edition::from_enum |> Some
       (5, _) => msg.maximum_edition = reader |> @protobuf.read_enum() |> Edition::from_enum |> Some
        (_, wire) => reader |> @protobuf.read_unknown(wire)
@@ -8590,13 +7306,12 @@ pub  fn[R: @protobuf.Reader] FeatureSetDefaults::read_with_limit(reader : @proto
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] FeatureSetDefaults::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for FeatureSetDefaults with write(self: FeatureSetDefaults, writer : &@protobuf.Writer) -> Unit raise {
   for item in self.defaults {
     writer |> @protobuf.write_varint(10UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
   match self.minimum_edition {
@@ -8647,44 +7362,10 @@ pub impl @json.FromJson for FeatureSetDefaults with from_json(json: Json, path: 
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] FeatureSetDefaults::async_read(reader : R) -> FeatureSetDefaults raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  FeatureSetDefaults::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] FeatureSetDefaults::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> FeatureSetDefaults raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = FeatureSetDefaults::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.defaults.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      FeatureSetDefaults_FeatureSetEditionDefault::default()
-    } else {
-      FeatureSetDefaults_FeatureSetEditionDefault::async_read_with_limit(reader, limit=len)
-    }
-  })
-      (4, _) => msg.minimum_edition = reader |> @protobuf.async_read_enum() |> Edition::from_enum |> Some
-      (5, _) => msg.maximum_edition = reader |> @protobuf.async_read_enum() |> Edition::from_enum |> Some
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] FeatureSetDefaults::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for FeatureSetDefaults with write(self: FeatureSetDefaults, writer : &@protobuf.AsyncWriter) -> Unit raise {
   for item in self.defaults {
     writer |> @protobuf.async_write_varint(10UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
 
   }
   match self.minimum_edition {
@@ -8703,6 +7384,23 @@ pub async fn[W: @protobuf.AsyncWriter] FeatureSetDefaults::async_write(self:Self
     }
     None => ()
   }
+}
+pub impl @protobuf.AsyncRead for FeatureSetDefaults with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> FeatureSetDefaults raise {
+  let msg = FeatureSetDefaults::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => msg.defaults.push((reader |> @protobuf.async_read_message() : FeatureSetDefaults_FeatureSetEditionDefault))
+      (4, _) => msg.minimum_edition = reader |> @protobuf.async_read_enum() |> Edition::from_enum |> Some
+      (5, _) => msg.maximum_edition = reader |> @protobuf.async_read_enum() |> Edition::from_enum |> Some
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
 }
 pub(all) struct SourceCodeInfo_Location {
   mut path : Array[Int]
@@ -8744,16 +7442,7 @@ pub fn SourceCodeInfo_Location::new(path : Array[Int], span : Array[Int], leadin
     leading_detached_comments,
   }
 }
-pub  fn[R: @protobuf.Reader] SourceCodeInfo_Location::read(reader : R) -> SourceCodeInfo_Location raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  SourceCodeInfo_Location::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] SourceCodeInfo_Location::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> SourceCodeInfo_Location raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for SourceCodeInfo_Location with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> SourceCodeInfo_Location raise {
   let msg = SourceCodeInfo_Location::default()
   try {
     for {
@@ -8770,10 +7459,9 @@ pub  fn[R: @protobuf.Reader] SourceCodeInfo_Location::read_with_limit(reader : @
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] SourceCodeInfo_Location::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for SourceCodeInfo_Location with write(self: SourceCodeInfo_Location, writer : &@protobuf.Writer) -> Unit raise {
   writer |> @protobuf.write_varint(10UL)
   let size = self.path.iter().map(@protobuf.size_of).fold(init=0U, UInt::op_add)
   writer |> @protobuf.write_uint32(size)
@@ -8851,36 +7539,7 @@ pub impl @json.FromJson for SourceCodeInfo_Location with from_json(json: Json, p
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] SourceCodeInfo_Location::async_read(reader : R) -> SourceCodeInfo_Location raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  SourceCodeInfo_Location::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] SourceCodeInfo_Location::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> SourceCodeInfo_Location raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = SourceCodeInfo_Location::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => { msg.path.push_iter((reader |> @protobuf.async_read_packed(@protobuf.async_read_int32, None)).iter()) }
-      (2, _) => { msg.span.push_iter((reader |> @protobuf.async_read_packed(@protobuf.async_read_int32, None)).iter()) }
-      (3, _) => msg.leading_comments = reader |> @protobuf.async_read_string() |> Some
-      (4, _) => msg.trailing_comments = reader |> @protobuf.async_read_string() |> Some
-      (6, _) => msg.leading_detached_comments.push(reader |> @protobuf.async_read_string())
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] SourceCodeInfo_Location::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for SourceCodeInfo_Location with write(self: SourceCodeInfo_Location, writer : &@protobuf.AsyncWriter) -> Unit raise {
   writer |> @protobuf.async_write_varint(10UL)
   let size = self.path.iter().map(@protobuf.size_of).fold(init=0U, UInt::op_add)
   writer |> @protobuf.async_write_uint32(size)
@@ -8917,6 +7576,25 @@ pub async fn[W: @protobuf.AsyncWriter] SourceCodeInfo_Location::async_write(self
 
   }
 }
+pub impl @protobuf.AsyncRead for SourceCodeInfo_Location with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> SourceCodeInfo_Location raise {
+  let msg = SourceCodeInfo_Location::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => { msg.path.push_iter((reader |> @protobuf.async_read_packed(@protobuf.async_read_int32, None)).iter()) }
+      (2, _) => { msg.span.push_iter((reader |> @protobuf.async_read_packed(@protobuf.async_read_int32, None)).iter()) }
+      (3, _) => msg.leading_comments = reader |> @protobuf.async_read_string() |> Some
+      (4, _) => msg.trailing_comments = reader |> @protobuf.async_read_string() |> Some
+      (6, _) => msg.leading_detached_comments.push(reader |> @protobuf.async_read_string())
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
+}
 pub(all) struct SourceCodeInfo {
   mut location : Array[SourceCodeInfo_Location]
 } derive(Eq, Show)
@@ -8935,28 +7613,12 @@ pub fn SourceCodeInfo::new(location : Array[SourceCodeInfo_Location]) -> SourceC
     location,
   }
 }
-pub  fn[R: @protobuf.Reader] SourceCodeInfo::read(reader : R) -> SourceCodeInfo raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  SourceCodeInfo::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] SourceCodeInfo::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> SourceCodeInfo raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for SourceCodeInfo with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> SourceCodeInfo raise {
   let msg = SourceCodeInfo::default()
   try {
     for {
       match (reader |> @protobuf.read_tag()) {
-      (1, _) => msg.location.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      SourceCodeInfo_Location::default()
-    } else {
-      SourceCodeInfo_Location::read_with_limit(reader, limit=len)
-    }
-  })
+      (1, _) => msg.location.push((reader |> @protobuf.read_message() : SourceCodeInfo_Location))
        (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
@@ -8964,13 +7626,12 @@ pub  fn[R: @protobuf.Reader] SourceCodeInfo::read_with_limit(reader : @protobuf.
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] SourceCodeInfo::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for SourceCodeInfo with write(self: SourceCodeInfo, writer : &@protobuf.Writer) -> Unit raise {
   for item in self.location {
     writer |> @protobuf.write_varint(10UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
 }
@@ -8995,28 +7656,19 @@ pub impl @json.FromJson for SourceCodeInfo with from_json(json: Json, path: @jso
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] SourceCodeInfo::async_read(reader : R) -> SourceCodeInfo raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  SourceCodeInfo::async_read_with_limit(reader)
+pub impl @protobuf.AsyncWrite for SourceCodeInfo with write(self: SourceCodeInfo, writer : &@protobuf.AsyncWriter) -> Unit raise {
+  for item in self.location {
+    writer |> @protobuf.async_write_varint(10UL)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
+
+  }
 }
-pub async fn[R: @protobuf.AsyncReader] SourceCodeInfo::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> SourceCodeInfo raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.AsyncRead for SourceCodeInfo with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> SourceCodeInfo raise {
   let msg = SourceCodeInfo::default()
   try {
     for {
       match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.location.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      SourceCodeInfo_Location::default()
-    } else {
-      SourceCodeInfo_Location::async_read_with_limit(reader, limit=len)
-    }
-  })
+      (1, _) => msg.location.push((reader |> @protobuf.async_read_message() : SourceCodeInfo_Location))
        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
       }
     }
@@ -9024,15 +7676,7 @@ pub async fn[R: @protobuf.AsyncReader] SourceCodeInfo::async_read_with_limit(rea
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
-}
-pub async fn[W: @protobuf.AsyncWriter] SourceCodeInfo::async_write(self:Self, writer : W) -> Unit raise {
-  for item in self.location {
-    writer |> @protobuf.async_write_varint(10UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
-
-  }
 }
 pub(all) enum GeneratedCodeInfo_Annotation_Semantic {
   NONE
@@ -9124,16 +7768,7 @@ pub fn GeneratedCodeInfo_Annotation::new(path : Array[Int], source_file? : Strin
     semantic,
   }
 }
-pub  fn[R: @protobuf.Reader] GeneratedCodeInfo_Annotation::read(reader : R) -> GeneratedCodeInfo_Annotation raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  GeneratedCodeInfo_Annotation::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] GeneratedCodeInfo_Annotation::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> GeneratedCodeInfo_Annotation raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for GeneratedCodeInfo_Annotation with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> GeneratedCodeInfo_Annotation raise {
   let msg = GeneratedCodeInfo_Annotation::default()
   try {
     for {
@@ -9150,10 +7785,9 @@ pub  fn[R: @protobuf.Reader] GeneratedCodeInfo_Annotation::read_with_limit(reade
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] GeneratedCodeInfo_Annotation::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for GeneratedCodeInfo_Annotation with write(self: GeneratedCodeInfo_Annotation, writer : &@protobuf.Writer) -> Unit raise {
   writer |> @protobuf.write_varint(10UL)
   let size = self.path.iter().map(@protobuf.size_of).fold(init=0U, UInt::op_add)
   writer |> @protobuf.write_uint32(size)
@@ -9235,36 +7869,7 @@ pub impl @json.FromJson for GeneratedCodeInfo_Annotation with from_json(json: Js
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] GeneratedCodeInfo_Annotation::async_read(reader : R) -> GeneratedCodeInfo_Annotation raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  GeneratedCodeInfo_Annotation::async_read_with_limit(reader)
-}
-pub async fn[R: @protobuf.AsyncReader] GeneratedCodeInfo_Annotation::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> GeneratedCodeInfo_Annotation raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
-  let msg = GeneratedCodeInfo_Annotation::default()
-  try {
-    for {
-      match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => { msg.path.push_iter((reader |> @protobuf.async_read_packed(@protobuf.async_read_int32, None)).iter()) }
-      (2, _) => msg.source_file = reader |> @protobuf.async_read_string() |> Some
-      (3, _) => msg.begin = reader |> @protobuf.async_read_int32() |> Some
-      (4, _) => msg.end = reader |> @protobuf.async_read_int32() |> Some
-      (5, _) => msg.semantic = reader |> @protobuf.async_read_enum() |> GeneratedCodeInfo_Annotation_Semantic::from_enum |> Some
-       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
-      }
-    }
-  } catch {
-    @protobuf.EndOfStream => ()
-    err => raise err
-  }
-  reader.limit = new_limit
-  msg
-}
-pub async fn[W: @protobuf.AsyncWriter] GeneratedCodeInfo_Annotation::async_write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.AsyncWrite for GeneratedCodeInfo_Annotation with write(self: GeneratedCodeInfo_Annotation, writer : &@protobuf.AsyncWriter) -> Unit raise {
   writer |> @protobuf.async_write_varint(10UL)
   let size = self.path.iter().map(@protobuf.size_of).fold(init=0U, UInt::op_add)
   writer |> @protobuf.async_write_uint32(size)
@@ -9305,6 +7910,25 @@ pub async fn[W: @protobuf.AsyncWriter] GeneratedCodeInfo_Annotation::async_write
     None => ()
   }
 }
+pub impl @protobuf.AsyncRead for GeneratedCodeInfo_Annotation with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> GeneratedCodeInfo_Annotation raise {
+  let msg = GeneratedCodeInfo_Annotation::default()
+  try {
+    for {
+      match (reader |> @protobuf.async_read_tag()) {
+      (1, _) => { msg.path.push_iter((reader |> @protobuf.async_read_packed(@protobuf.async_read_int32, None)).iter()) }
+      (2, _) => msg.source_file = reader |> @protobuf.async_read_string() |> Some
+      (3, _) => msg.begin = reader |> @protobuf.async_read_int32() |> Some
+      (4, _) => msg.end = reader |> @protobuf.async_read_int32() |> Some
+      (5, _) => msg.semantic = reader |> @protobuf.async_read_enum() |> GeneratedCodeInfo_Annotation_Semantic::from_enum |> Some
+       (_, wire) => reader |> @protobuf.async_read_unknown(wire)
+      }
+    }
+  } catch {
+    @protobuf.EndOfStream => ()
+    err => raise err
+  }
+  msg
+}
 pub(all) struct GeneratedCodeInfo {
   mut annotation : Array[GeneratedCodeInfo_Annotation]
 } derive(Eq, Show)
@@ -9323,28 +7947,12 @@ pub fn GeneratedCodeInfo::new(annotation : Array[GeneratedCodeInfo_Annotation]) 
     annotation,
   }
 }
-pub  fn[R: @protobuf.Reader] GeneratedCodeInfo::read(reader : R) -> GeneratedCodeInfo raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  GeneratedCodeInfo::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] GeneratedCodeInfo::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> GeneratedCodeInfo raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for GeneratedCodeInfo with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> GeneratedCodeInfo raise {
   let msg = GeneratedCodeInfo::default()
   try {
     for {
       match (reader |> @protobuf.read_tag()) {
-      (1, _) => msg.annotation.push(  {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      GeneratedCodeInfo_Annotation::default()
-    } else {
-      GeneratedCodeInfo_Annotation::read_with_limit(reader, limit=len)
-    }
-  })
+      (1, _) => msg.annotation.push((reader |> @protobuf.read_message() : GeneratedCodeInfo_Annotation))
        (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
@@ -9352,13 +7960,12 @@ pub  fn[R: @protobuf.Reader] GeneratedCodeInfo::read_with_limit(reader : @protob
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] GeneratedCodeInfo::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for GeneratedCodeInfo with write(self: GeneratedCodeInfo, writer : &@protobuf.Writer) -> Unit raise {
   for item in self.annotation {
     writer |> @protobuf.write_varint(10UL)
-    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); item.write(writer)
+    writer |> @protobuf.write_uint32(@protobuf.size_of(item)); @protobuf.Write::write(item, writer)
 
   }
 }
@@ -9383,28 +7990,19 @@ pub impl @json.FromJson for GeneratedCodeInfo with from_json(json: Json, path: @
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] GeneratedCodeInfo::async_read(reader : R) -> GeneratedCodeInfo raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  GeneratedCodeInfo::async_read_with_limit(reader)
+pub impl @protobuf.AsyncWrite for GeneratedCodeInfo with write(self: GeneratedCodeInfo, writer : &@protobuf.AsyncWriter) -> Unit raise {
+  for item in self.annotation {
+    writer |> @protobuf.async_write_varint(10UL)
+    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); @protobuf.AsyncWrite::write(item, writer)
+
+  }
 }
-pub async fn[R: @protobuf.AsyncReader] GeneratedCodeInfo::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> GeneratedCodeInfo raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.AsyncRead for GeneratedCodeInfo with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> GeneratedCodeInfo raise {
   let msg = GeneratedCodeInfo::default()
   try {
     for {
       match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.annotation.push(  {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      GeneratedCodeInfo_Annotation::default()
-    } else {
-      GeneratedCodeInfo_Annotation::async_read_with_limit(reader, limit=len)
-    }
-  })
+      (1, _) => msg.annotation.push((reader |> @protobuf.async_read_message() : GeneratedCodeInfo_Annotation))
        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
       }
     }
@@ -9412,13 +8010,5 @@ pub async fn[R: @protobuf.AsyncReader] GeneratedCodeInfo::async_read_with_limit(
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
-}
-pub async fn[W: @protobuf.AsyncWriter] GeneratedCodeInfo::async_write(self:Self, writer : W) -> Unit raise {
-  for item in self.annotation {
-    writer |> @protobuf.async_write_varint(10UL)
-    writer |> @protobuf.async_write_uint32(@protobuf.size_of(item)); item.async_write(writer)
-
-  }
 }

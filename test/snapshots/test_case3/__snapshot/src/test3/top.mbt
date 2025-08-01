@@ -16,28 +16,12 @@ pub fn Test::new(created_at : @test2.Hello) -> Test {
     created_at,
   }
 }
-pub  fn[R: @protobuf.Reader] Test::read(reader : R) -> Test raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  Test::read_with_limit(reader)
-}
-pub  fn[R: @protobuf.Reader] Test::read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> Test raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.Read for Test with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.Reader]) -> Test raise {
   let msg = Test::default()
   try {
     for {
       match (reader |> @protobuf.read_tag()) {
-      (1, _) => msg.created_at =   {
-    let len = reader |> @protobuf.read_int32()
-    if len == 0 {
-      @test2.Hello::default()
-    } else {
-      @test2.Hello::read_with_limit(reader, limit=len)
-    }
-  }
+      (1, _) => msg.created_at = (reader |> @protobuf.read_message() : @test2.Hello)
        (_, wire) => reader |> @protobuf.read_unknown(wire)
       }
     }
@@ -45,12 +29,11 @@ pub  fn[R: @protobuf.Reader] Test::read_with_limit(reader : @protobuf.LimitedRea
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
 }
-pub  fn[W: @protobuf.Writer] Test::write(self:Self, writer : W) -> Unit raise {
+pub impl @protobuf.Write for Test with write(self: Test, writer : &@protobuf.Writer) -> Unit raise {
   writer |> @protobuf.write_varint(10UL);
-  writer |> @protobuf.write_uint32(@protobuf.size_of(self.created_at)); self.created_at.write(writer)
+  writer |> @protobuf.write_uint32(@protobuf.size_of(self.created_at)); @protobuf.Write::write(self.created_at, writer)
 }
 pub impl ToJson for Test with to_json(self) {
   let json: Map[String, Json] = {}
@@ -72,28 +55,16 @@ pub impl @json.FromJson for Test with from_json(json: Json, path: @json.JsonPath
   }
   message
 }
-pub async fn[R: @protobuf.AsyncReader] Test::async_read(reader : R) -> Test raise {
-  let reader = @protobuf.LimitedReader::new(reader)
-  Test::async_read_with_limit(reader)
+pub impl @protobuf.AsyncWrite for Test with write(self: Test, writer : &@protobuf.AsyncWriter) -> Unit raise {
+  writer |> @protobuf.async_write_varint(10UL);
+  writer |> @protobuf.async_write_uint32(@protobuf.size_of(self.created_at)); @protobuf.AsyncWrite::write(self.created_at, writer)
 }
-pub async fn[R: @protobuf.AsyncReader] Test::async_read_with_limit(reader : @protobuf.LimitedReader[R], limit ?: Int) -> Test raise {
-  let new_limit = if reader.limit is Some(l) && limit is Some(limit) {
-    if l < limit { raise @protobuf.EndOfStream }
-    Some(l - limit)
-  } else { None }
-  reader.limit = limit
+pub impl @protobuf.AsyncRead for Test with read_with_limit(reader : @protobuf.LimitedReader[&@protobuf.AsyncReader]) -> Test raise {
   let msg = Test::default()
   try {
     for {
       match (reader |> @protobuf.async_read_tag()) {
-      (1, _) => msg.created_at =   {
-    let len = reader |> @protobuf.async_read_int32()
-    if len == 0 {
-      @test2.Hello::default()
-    } else {
-      @test2.Hello::async_read_with_limit(reader, limit=len)
-    }
-  }
+      (1, _) => msg.created_at = (reader |> @protobuf.async_read_message() : @test2.Hello)
        (_, wire) => reader |> @protobuf.async_read_unknown(wire)
       }
     }
@@ -101,10 +72,5 @@ pub async fn[R: @protobuf.AsyncReader] Test::async_read_with_limit(reader : @pro
     @protobuf.EndOfStream => ()
     err => raise err
   }
-  reader.limit = new_limit
   msg
-}
-pub async fn[W: @protobuf.AsyncWriter] Test::async_write(self:Self, writer : W) -> Unit raise {
-  writer |> @protobuf.async_write_varint(10UL);
-  writer |> @protobuf.async_write_uint32(@protobuf.size_of(self.created_at)); self.created_at.async_write(writer)
 }
