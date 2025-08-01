@@ -1,7 +1,7 @@
 ///|
 test "proto2_test_case_1" {
   let json = (
-    from_file_to_proto_message("../bin/proto2_test_case_1.bin") :
+    from_bin_to_proto_message("../bin/proto2_test_case_1.bin") :
     @gen_proto2.FooMessageP2)
   @json.inspect(json, content={
     "fInt32": 42,
@@ -23,7 +23,7 @@ test "proto2_test_case_1" {
 ///|
 test "proto2_test_case_2" {
   let json = (
-    from_file_to_proto_message("../bin/proto2_test_case_2.bin") :
+    from_bin_to_proto_message("../bin/proto2_test_case_2.bin") :
     @gen_proto2.FooMessageP2)
   @json.inspect(json, content={
     "fInt32": 42,
@@ -43,7 +43,7 @@ test "proto2_test_case_2" {
 ///|
 test "proto2_test_case_3" {
   let json = (
-    from_file_to_proto_message("../bin/proto2_test_case_3.bin") :
+    from_bin_to_proto_message("../bin/proto2_test_case_3.bin") :
     @gen_proto2.FooMessageP2)
   @json.inspect(json, content={
     "fInt32": -42,
@@ -65,7 +65,7 @@ test "proto2_test_case_3" {
 ///|
 test "proto2_test_case_4" {
   let json = (
-    from_file_to_proto_message("../bin/proto2_test_case_4.bin") :
+    from_bin_to_proto_message("../bin/proto2_test_case_4.bin") :
     @gen_proto2.FooMessageP2)
   @json.inspect(json, content={
     "fInt32": 2147483647,
@@ -101,7 +101,7 @@ test "proto2_test_case_4" {
 ///|
 test "proto2_test_case_5" {
   let json = (
-    from_file_to_proto_message("../bin/proto2_test_case_5.bin") :
+    from_bin_to_proto_message("../bin/proto2_test_case_5.bin") :
     @gen_proto2.FooMessageP2)
   @json.inspect(json, content={
     "fInt32": 100,
@@ -121,7 +121,7 @@ test "proto2_test_case_5" {
 ///|
 test "proto2_test_case_6" {
   let json = (
-    from_file_to_proto_message("../bin/proto2_test_case_6.bin") :
+    from_bin_to_proto_message("../bin/proto2_test_case_6.bin") :
     @gen_proto2.FooMessageP2)
   @json.inspect(json, content={
     "fInt32": 300,
@@ -149,7 +149,7 @@ test "proto2_test_case_6" {
 ///|
 test "proto2_test_case_7" {
   let json = (
-    from_file_to_proto_message("../bin/proto2_test_case_7.bin") :
+    from_bin_to_proto_message("../bin/proto2_test_case_7.bin") :
     @gen_proto2.FooMessageP2)
   @json.inspect(json, content={
     "fInt32": 800,
@@ -187,7 +187,7 @@ test "proto2_test_case_7" {
 ///|
 test "proto2_test_case_8" {
   let json = (
-    from_file_to_proto_message("../bin/proto2_test_case_8.bin") :
+    from_bin_to_proto_message("../bin/proto2_test_case_8.bin") :
     @gen_proto2.FooMessageP2)
   @json.inspect(json, content={ "fBool": false, "fBytes": "", "fString": "" })
   let message : @gen_proto2.FooMessageP2 = @json.from_json(json.to_json())
@@ -197,7 +197,7 @@ test "proto2_test_case_8" {
 ///|
 test "proto2_test_case_9" {
   let json = (
-    from_file_to_proto_message("../bin/proto2_test_case_9.bin") :
+    from_bin_to_proto_message("../bin/proto2_test_case_9.bin") :
     @gen_proto2.FooMessageP2)
   @json.inspect(json, content={
     "fInt32": -1,
@@ -217,7 +217,7 @@ test "proto2_test_case_9" {
 ///|
 test "proto2_test_case_10" {
   let json = (
-    from_file_to_proto_message("../bin/proto2_test_case_10.bin") :
+    from_bin_to_proto_message("../bin/proto2_test_case_10.bin") :
     @gen_proto2.FooMessageP2)
   @json.inspect(json, content={
     "fInt32": 12345,
@@ -237,7 +237,7 @@ test "proto2_test_case_10" {
 ///|
 test "proto2_test_case_11" {
   let json = (
-    from_file_to_proto_message("../bin/proto2_test_case_11.bin") :
+    from_bin_to_proto_message("../bin/proto2_test_case_11.bin") :
     @gen_proto2.FooMessageP2)
   @json.inspect(json, content={
     "fInt32": 111,
@@ -257,7 +257,7 @@ test "proto2_test_case_11" {
 ///|
 test "proto2_test_case_12" {
   let json = (
-    from_file_to_proto_message("../bin/proto2_test_case_12.bin") :
+    from_bin_to_proto_message("../bin/proto2_test_case_12.bin") :
     @gen_proto2.FooMessageP2)
   @json.inspect(json, content={
     "fInt32": 444,
