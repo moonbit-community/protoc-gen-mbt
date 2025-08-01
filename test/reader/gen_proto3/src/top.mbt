@@ -858,6 +858,12 @@ pub impl ToJson for FooMessage with to_json(self) {
     Some(v) => json["fOptionalString"] = v.to_json()
     _ => ()
   }
+  match self.test_oneof {
+    NotSet => ()
+    F1(v) => json["f1"] = v.to_json()
+    F2(v) => json["f2"] = v.to_json()
+    F3(v) => json["f3"] = v.to_json()
+  }
   Json::object(json)
 }
 
@@ -917,6 +923,9 @@ pub impl @json.FromJson for FooMessage with from_json(
         ))
       ("fOptionalString", value) =>
         message.f_optional_string = Some(@json.from_json(value, path~))
+      ("f1", value) => message.test_oneof = @json.from_json(value, path~)
+      ("f2", value) => message.test_oneof = @json.from_json(value, path~)
+      ("f3", value) => message.test_oneof = @json.from_json(value, path~)
       key => raise @json.JsonDecodeError((path, "Unknown field \{key}"))
     }
   }
