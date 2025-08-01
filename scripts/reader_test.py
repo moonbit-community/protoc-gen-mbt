@@ -104,6 +104,7 @@ def build_go_binary(go_gen_cli_dir: Path, bin_dir: Path):
     logger.info("Building Go binary...")
     bin_dir.mkdir(parents=True, exist_ok=True)
     go_cmd = ["go", "run", "main.go", "p2_cases.go", "p3_cases.go", "-o", str(bin_dir)]
+    go_cmd = ["go", "run", "main.go", "p2_cases.go", "p3_cases.go", "-f", "json", "-o", str(bin_dir)]
     run_command(go_cmd, cwd=go_gen_cli_dir)
     logger.info("Go binary built successfully")
 

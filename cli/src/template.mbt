@@ -502,6 +502,23 @@ fn CodeGenerator::gen_message_json(
       content.write_string("  }\n")
     }
   }
+  for oneof in message.oneofs {
+    let oneof_field = oneof.import_path.name() |> pascal_to_snake
+    content.write_string(
+      (
+        $|  match self.\{oneof_field} {
+        $|    NotSet => ()\n
+      ),
+    )
+    for field in oneof.field {
+      let json_name = field.json_name.unwrap()
+      let field_type = field.import_path.name() |> to_camel_case
+      content.write_string(
+        "    \{field_type}(v) => json[\"\{json_name}\"] = v.to_json()\n",
+      )
+    }
+    content.write_string("  }\n")
+  }
   // From JSON
   content.write_string(
     (
@@ -563,6 +580,15 @@ fn CodeGenerator::gen_message_json(
             "      (\"\{json_name}\", value) => message.\{field_name} = @json.from_json(value, path~)\n",
           )
       }
+    }
+  }
+  for oneof in message.oneofs {
+    let oneof_field = oneof.import_path.name() |> pascal_to_snake
+    for field in oneof.field {
+      let json_name = field.json_name.unwrap()
+      content.write_string(
+        "      (\"\{json_name}\", value) => message.\{oneof_field} = @json.from_json(value, path~)\n",
+      )
     }
   }
   content.write_string(
