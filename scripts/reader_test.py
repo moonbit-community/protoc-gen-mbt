@@ -112,9 +112,10 @@ def build_go_binary(go_gen_cli_dir: Path, bin_dir: Path):
 def run_reader_test(runner_dir: Path, update_mode: bool = False):
     """Run the actual reader test using moon test."""
     logger.info("Running reader test...")
-    moon_test(runner_dir)
     if update_mode:
         moon_test_update(runner_dir)
+    else:
+        moon_test(runner_dir)
     logger.info("Reader test passed")
 
 
