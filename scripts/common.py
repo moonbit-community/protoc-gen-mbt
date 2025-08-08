@@ -103,6 +103,7 @@ def build_protoc_command(
     cmd.extend(proto_files)
     return cmd
 
+
 def command(cmd: list[str]) -> Callable[[Optional[Path]], None]:
     def run_command(cwd: Optional[Path] = None) -> None:
         logger.info(f"{' '.join(cmd)}")
@@ -126,9 +127,8 @@ def command(cmd: list[str]) -> Callable[[Optional[Path]], None]:
 
     return run_command
 
-def run_command(
-    cmd: list[str], cwd: Optional[Path] = None
-) -> None:
+
+def run_command(cmd: list[str], cwd: Optional[Path] = None) -> None:
     """
     Run a command with proper error handling and logging.
 
@@ -158,7 +158,6 @@ def run_command(
         raise e
 
 
-
 def update_lib_deps(project_root: Path, gen_mod_json_dir: Path) -> None:
     """Fix the deps path in the generated moon.mod.json file."""
 
@@ -186,6 +185,7 @@ def update_lib_deps(project_root: Path, gen_mod_json_dir: Path) -> None:
 
     logger.info(f"Updated deps path in {gen_mod_json_dir}")
 
+
 moon_update = command(["moon", "update"])
 
 moon_install = command(["moon", "install"])
@@ -195,6 +195,8 @@ moon_fmt = command(["moon", "fmt"])
 moon_test = command(["moon", "test", "--target", "native"])
 
 moon_test_update = command(["moon", "test", "--target", "native", "--update"])
+
+moon_test_all = command(["moon", "test", "--target", "native,all"])
 
 moon_check = command(["moon", "check", "--target", "native"])
 
