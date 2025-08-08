@@ -55,10 +55,10 @@ pub fn base64_decode(s : String) -> Bytes {
     rev_table[base64[j].to_int()] = j.to_byte()
   }
   let get_char = fn(i : Int) -> Byte {
-    if s.char_at(i) == '=' {
+    if s.get_char(i).unwrap() == '=' {
       0
     } else {
-      rev_table[s.char_at(i).to_int()]
+      rev_table[s.get_char(i).unwrap().to_int()]
     }
   }
   for i = 0; i < input_length; i = i + 4 {

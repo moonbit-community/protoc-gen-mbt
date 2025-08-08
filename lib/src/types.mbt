@@ -13,13 +13,13 @@
 // limitations under the License.
 
 ///| `sint32`
-pub(all) type SInt Int derive(Default, Eq, Show)
+pub(all) struct SInt(Int) derive(Default, Eq, Show)
 
 ///| `sint64`
-pub(all) type SInt64 Int64 derive(Default, Eq, Show)
+pub(all) struct SInt64(Int64) derive(Default, Eq, Show)
 
 ///| length
-pub(all) type Len Int derive(Default, Eq, Show)
+pub(all) struct Len(Int) derive(Default, Eq, Show)
 
 ///| Enum
-pub(all) type Enum UInt derive(Default, Eq, Show)
+pub(all) struct Enum(UInt) derive(Default, Eq, Show)

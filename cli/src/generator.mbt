@@ -12,7 +12,7 @@ struct CodeGenerator {
 }
 
 ///|
-type ImportNameAlias Map[String, Int]
+struct ImportNameAlias(Map[String, Int])
 
 ///|
 fn ImportNameAlias::new() -> ImportNameAlias {
@@ -73,7 +73,7 @@ fn CodeGenerator::find_enum(self : CodeGenerator, type_name : String) -> Enum? {
     let type_name = type_name.trim(".")
     if type_name.has_prefix(name) {
       let path = pkg.import_path.append(
-        type_name.charcodes(start=name.length()).to_string(),
+        type_name.view(start_offset=name.length()).to_string(),
       )
       if pkg.find_enum(path) is Some(enum_) {
         return enum_ |> Some
@@ -92,7 +92,7 @@ fn CodeGenerator::find_message(
     let pkg_name = pkg_name.trim(".")
     if type_name.trim(".").has_prefix(pkg_name) {
       let path = pkg.import_path.append(
-        type_name.trim(".").charcodes(start=pkg_name.length()).to_string(),
+        type_name.trim(".").view(start_offset=pkg_name.length()).to_string(),
       )
       if pkg.find_message(path) is Some(message) {
         return message |> Some
@@ -136,7 +136,7 @@ fn CodeGenerator::qualified_name(
   let import_name = package_name
     .rev_find(".")
     .map_or(package_name, pos => package_name
-      .charcodes(start=pos + 1)
+      .view(start_offset=pos + 1)
       .to_string())
   if self.package_import.contains(package_name) {
     return self.package_import.get(package_name).unwrap()
