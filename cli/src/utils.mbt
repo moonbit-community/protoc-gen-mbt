@@ -102,18 +102,24 @@ test "to_camel_case" {
 ///|
 fn pascal_to_snake(name : String) -> String {
   let keywords = [
-    "module", "move", "ref", "static", "super", "unsafe", "use", "where", "await",
-    "dyn", "abstract", "do", "final", "macro", "override", "typeof", "virtual", "yield",
-    "local", "method", "alias", "assert", "as", "else", "extern", "fn", "if", "let",
-    "const", "match", "mut", "type", "typealias", "struct", "enum", "trait", "traitalias",
-    "derive", "while", "break", "continue", "import", "return", "throw", "raise",
-    "try", "catch", "pub", "priv", "readonly", "true", "false", "_", "test", "loop",
-    "for", "in", "impl", "with", "guard", "async", "is", "init", "main", "lazy",
-    "package",
+    "as", "else", "extern", "fn", "fnalias", "if", "let", "const", "match", "using",
+    "mut", "type", "typealias", "struct", "enum", "trait", "traitalias", "derive",
+    "while", "break", "continue", "import", "return", "throw", "raise", "try", "catch",
+    "pub", "priv", "readonly", "true", "false", "_", "test", "loop", "for", "in",
+    "impl", "with", "guard", "async", "is", "suberror", "and", "letrec", "enumview",
+    "noraise", "defer", "module", "move", "ref", "static", "super", "unsafe", "use",
+    "where", "await", "dyn", "abstract", "do", "final", "macro", "override", "typeof",
+    "virtual", "yield", "local", "method", "alias", "assert", "package", "recur",
+    "using", "enumview", "isnot", "define", "downcast", "inherit", "member", "namespace",
+    "static", "upcast", "use", "void", "lazy", "include", "mixin", "protected", "sealed",
+    "constructor", "atomic", "volatile", "anyframe", "anytype", "asm", "await", "comptime",
+    "errdefer", "export", "opaque", "orelse", "resume", "threadlocal", "unreachable",
+    "dynclass", "dynobj", "dynrec", "var", "finally", "noasync", "init", "main"
   ]
   let new_name = StringBuilder::new()
   let upper = StringBuilder::new()
   let prev = '_'
+
   loop (name[:], prev) {
     (['A'..='Z' as c, .. rest], prev) => {
       if upper.is_empty() && prev != '_' {
